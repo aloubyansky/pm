@@ -59,7 +59,7 @@ public class ZipUtils {
         }
     }
 
-    private static void copyFromZip(Path source, Path target) throws IOException {
+    public static void copyFromZip(Path source, Path target) throws IOException {
         Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
                 new SimpleFileVisitor<Path>() {
                     @Override

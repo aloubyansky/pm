@@ -105,8 +105,9 @@ public class IoUtils {
                         try {
                             Files.copy(dir, targetDir);
                         } catch (FileAlreadyExistsException e) {
-                             if (!Files.isDirectory(targetDir))
+                             if (!Files.isDirectory(targetDir)) {
                                  throw e;
+                             }
                         }
                         return FileVisitResult.CONTINUE;
                     }

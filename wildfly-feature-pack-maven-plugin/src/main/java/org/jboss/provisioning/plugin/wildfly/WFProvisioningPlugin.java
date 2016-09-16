@@ -42,7 +42,6 @@ import java.util.zip.ZipEntry;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.Constants;
 import org.jboss.provisioning.Errors;
 import org.jboss.provisioning.GAV;
@@ -185,7 +184,7 @@ public class WFProvisioningPlugin implements ProvisioningPlugin {
         }
     }
 
-    private void collectFeaturePackSubsystemsInput(ProvisioningContext ctx, Path fpDir) throws ProvisioningException {
+    private void collectFeaturePackSubsystemsInput(final ProvisioningContext ctx, Path fpDir) throws ProvisioningException {
         final Path packagesDir = fpDir.resolve(Constants.PACKAGES);
         final Path modulesPackageXml = packagesDir.resolve("modules").resolve(Constants.PACKAGE_XML);
         if (!Files.exists(modulesPackageXml)) {
@@ -212,11 +211,29 @@ public class WFProvisioningPlugin implements ProvisioningPlugin {
                     }
 
                     @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    public FileVisitResult visitFile(final Path file, BasicFileAttributes attrs) throws IOException {
                         if (!file.getFileName().toString().equals("module.xml")) {
                             return FileVisitResult.CONTINUE;
                         }
-                        collectModuleSubsystemsInput(ctx, file);
+                        Util.processModuleArtifacts(file, (coords) -> {
+                            final Path artifactFile;
+                            try {
+                                artifactFile = ctx.resolveArtifact(coords);
+                            } catch(ProvisioningException e) {
+                                throw new IOException(FPMavenErrors.artifactResolution(coords), e);
+                            }
+
+                            final FileSystem jarFS = FileSystems.newFileSystem(artifactFile, null);
+                            final Path subsystemTemplates = jarFS.getPath("subsystem-templates");
+                            if (Files.exists(subsystemTemplates)) {
+                                try (DirectoryStream<Path> stream = Files.newDirectoryStream(subsystemTemplates)) {
+                                    for (Path path : stream) {
+                                        subsystemsInput.addSubsystemFileSource(path.getFileName().toString(),
+                                                artifactFile.toFile(), new ZipEntry(path.toString().substring(1)));
+                                    }
+                                }
+                            }
+                        });
                         return FileVisitResult.CONTINUE;
                     }
 
@@ -233,33 +250,6 @@ public class WFProvisioningPlugin implements ProvisioningPlugin {
             } catch (IOException e) {
                 throw new ProvisioningException(Errors.readDirectory(moduleDir), e);
             }
-        }
-    }
-
-    private void collectModuleSubsystemsInput(final ProvisioningContext ctx, final Path moduleXml) throws IOException {
-        try {
-            final ModuleParseResult parsedModule = ModuleXmlParser.parse(moduleXml, "UTF-8");
-            for(ModuleParseResult.ArtifactName artName : parsedModule.artifacts) {
-                final Path artifactPath;
-                final ArtifactCoords coords = ArtifactCoordsUtil.fromJBossModules(artName.getArtifactCoords(), "jar");
-                try {
-                    artifactPath = ctx.resolveArtifact(coords);
-                } catch(ProvisioningException e) {
-                    throw new IOException(FPMavenErrors.artifactResolution(coords));
-                }
-                final FileSystem jarFS = FileSystems.newFileSystem(artifactPath, null);
-                final Path subsystemTemplates = jarFS.getPath("subsystem-templates");
-                if(Files.exists(subsystemTemplates)) {
-                    try (DirectoryStream<Path> stream = Files.newDirectoryStream(subsystemTemplates)) {
-                        for(Path path : stream) {
-                            subsystemsInput.addSubsystemFileSource(path.getFileName().toString(),
-                                    artifactPath.toFile(), new ZipEntry(path.toString().substring(1)));
-                        }
-                    }
-                }
-            }
-        } catch (XMLStreamException e) {
-            throw new IOException(Errors.parseXml(moduleXml), e);
         }
     }
 

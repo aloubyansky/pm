@@ -27,9 +27,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
-
 import javax.xml.stream.XMLStreamException;
 
+import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.Errors;
 import org.jboss.provisioning.ProvisioningException;
 import org.jboss.provisioning.plugin.wildfly.featurepack.model.WildFlyPostFeaturePackTasks;
@@ -42,6 +42,10 @@ import org.jboss.provisioning.plugin.wildfly.featurepack.model.build.WildFlyFeat
  * @author Alexey Loubyansky
  */
 class Util {
+
+    interface ArtifactProcessor {
+        void process(ArtifactCoords coords) throws IOException;
+    }
 
     static WildFlyFeaturePackBuild loadFeaturePackBuildConfig(Path configFile, Properties props) throws ProvisioningException {
         try (InputStream configStream = Files.newInputStream(configFile)) {
@@ -64,4 +68,16 @@ class Util {
             throw new ProvisioningException(Errors.openFile(configFile), e);
         }
     }
+
+    static void processModuleArtifacts(final Path moduleXml, ArtifactProcessor ap) throws IOException {
+        try {
+            final ModuleParseResult parsedModule = ModuleXmlParser.parse(moduleXml, "UTF-8");
+            for(ModuleParseResult.ArtifactName artName : parsedModule.artifacts) {
+                ap.process(ArtifactCoordsUtil.fromJBossModules(artName.getArtifactCoords(), "jar"));
+            }
+        } catch (XMLStreamException e) {
+            throw new IOException(Errors.parseXml(moduleXml), e);
+        }
+    }
+
 }

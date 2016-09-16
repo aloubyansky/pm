@@ -77,6 +77,7 @@ import org.jboss.provisioning.plugin.wildfly.featurepack.model.build.CopyArtifac
 import org.jboss.provisioning.plugin.wildfly.featurepack.model.build.WildFlyFeaturePackBuild;
 import org.jboss.provisioning.util.IoUtils;
 import org.jboss.provisioning.util.PropertyUtils;
+import org.jboss.provisioning.util.ZipUtils;
 import org.jboss.provisioning.xml.FeaturePackXMLWriter;
 import org.jboss.provisioning.xml.PackageXMLWriter;
 
@@ -189,15 +190,13 @@ public class WFFeaturePackBuildMojo extends AbstractMojo {
         }
         final PackageDescription.Builder modulesBuilder = PackageDescription.builder("modules");
         try {
-            packageModules(fpBuilder, modulesBuilder, targetResources, srcModulesDir, fpPackagesDir);
+            packageModules(fpBuilder, modulesBuilder, build, targetResources, srcModulesDir, fpPackagesDir);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to process modules content", e);
         }
 
         final PackageDescription modulesPkg = modulesBuilder.build();
         writeXml(modulesPkg, fpDir.resolve(Constants.PACKAGES).resolve(modulesPkg.getName()));
-
-        //assembleConfigs(targetResources, build);
 
         try {
             packageContent(fpBuilder, targetResources.resolve(Constants.CONTENT), fpPackagesDir);
@@ -254,7 +253,8 @@ public class WFFeaturePackBuildMojo extends AbstractMojo {
         for(CopyArtifact copyArtifact : build.getCopyArtifacts()) {
             final String gavString = artifactVersions.getVersion(copyArtifact.getArtifact());
             try {
-                final Path jarSrc = resolveArtifact(ArtifactCoordsUtil.fromJBossModules(gavString, "jar"));
+                final ArtifactCoords coords = ArtifactCoordsUtil.fromJBossModules(gavString, "jar");
+                final Path jarSrc = resolveArtifact(coords);
                 String location = copyArtifact.getToLocation();
                 if (location.endsWith("/")) {
                     // if the to location ends with a / then it is a directory
@@ -274,9 +274,17 @@ public class WFFeaturePackBuildMojo extends AbstractMojo {
                 } else {
                     IoUtils.copy(jarSrc, jarTarget);
                 }
+
+                extractSchemas(build, coords.getGroupId(), jarSrc);
             } catch (ProvisioningException | IOException e) {
                 throw new MojoExecutionException("Failed to copy artifact " + gavString, e);
             }
+        }
+    }
+
+    private void extractSchemas(WildFlyFeaturePackBuild build, String groupId, Path jar) {
+        if(build.isPackageSchemas() && build.isSchemaGroup(groupId)) {
+        // TODO
         }
     }
 
@@ -344,7 +352,7 @@ public class WFFeaturePackBuildMojo extends AbstractMojo {
     }
 
     private void packageModules(FeaturePackDescription.Builder fpBuilder, PackageDescription.Builder modulesBuilder,
-            Path resourcesDir, Path modulesDir, Path packagesDir) throws IOException {
+            final WildFlyFeaturePackBuild wfFpConfig, Path resourcesDir, Path modulesDir, Path packagesDir) throws IOException {
         final BuildPropertyReplacer buildPropertyReplacer = new BuildPropertyReplacer(new ModuleArtifactPropertyResolver(artifactVersions));
         Files.walkFileTree(modulesDir, new FileVisitor<Path>() {
             @Override
@@ -381,6 +389,25 @@ public class WFFeaturePackBuildMojo extends AbstractMojo {
                     throw new IOException("Failed to replace properties for " + file, t);
                 }
                 IoUtils.writeFile(targetXml, targetContent);
+
+                // extract schemas
+                if(wfFpConfig.isPackageSchemas()) {
+                    Util.processModuleArtifacts(targetXml, coords -> {
+                        if (wfFpConfig.isSchemaGroup(coords.getGroupId())) {
+                            final Path artifactFile;
+                            try {
+                                artifactFile = resolveArtifact(coords);
+                            } catch(ProvisioningException e) {
+                                throw new IOException(FPMavenErrors.artifactResolution(coords), e);
+                            }
+                            final FileSystem jarFS = FileSystems.newFileSystem(artifactFile, null);
+                            final Path schemaSrc = jarFS.getPath("schema");
+                            if (Files.exists(schemaSrc)) {
+                                ZipUtils.copyFromZip(schemaSrc.toAbsolutePath(), resourcesDir.resolve("content").resolve("docs").resolve("schema"));
+                            }
+                        }
+                    });
+                }
 
                 if (!OS_WINDOWS) {
                     Files.setPosixFilePermissions(targetXml, Files.getPosixFilePermissions(file));

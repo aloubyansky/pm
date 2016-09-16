@@ -19,7 +19,9 @@ package org.jboss.provisioning.plugin.wildfly.featurepack.model.build;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jboss.provisioning.descr.FeaturePackDependencyDescription;
 import org.jboss.provisioning.plugin.wildfly.featurepack.model.ConfigDescription;
@@ -43,6 +45,8 @@ public class WildFlyFeaturePackBuild {
         private List<String> mkDirs = Collections.emptyList();
         private List<FileFilter> windowsLineEndFilters = Collections.emptyList();
         private List<FileFilter> unixLineEndFilters = Collections.emptyList();
+        private boolean packageSchemas;
+        private Set<String> schemaGroups = Collections.emptySet();
 
         private Builder() {
         }
@@ -144,11 +148,30 @@ public class WildFlyFeaturePackBuild {
             return this;
         }
 
+        public Builder setPackageSchemas() {
+            this.packageSchemas = true;
+            return this;
+        }
+
+        public Builder addSchemaGroup(String groupId) {
+            switch(schemaGroups.size()) {
+                case 0:
+                    schemaGroups = Collections.singleton(groupId);
+                    break;
+                case 1:
+                    schemaGroups = new HashSet<String>(schemaGroups);
+                default:
+                    schemaGroups.add(groupId);
+            }
+            return this;
+        }
+
         public WildFlyFeaturePackBuild build() {
             return new WildFlyFeaturePackBuild(Collections.unmodifiableList(dependencies), config,
                     Collections.unmodifiableList(copyArtifacts), Collections.unmodifiableList(filePermissions),
                     Collections.unmodifiableList(mkDirs),
-                    Collections.unmodifiableList(windowsLineEndFilters), Collections.unmodifiableList(unixLineEndFilters));
+                    Collections.unmodifiableList(windowsLineEndFilters), Collections.unmodifiableList(unixLineEndFilters),
+                    packageSchemas, Collections.unmodifiableSet(schemaGroups));
         }
     }
 
@@ -163,10 +186,13 @@ public class WildFlyFeaturePackBuild {
     private final List<String> mkDirs;
     private final List<FileFilter> windowsLineEndFilters;
     private final List<FileFilter> unixLineEndFilters;
+    private final boolean packageSchemas;
+    private final Set<String> schemaGroups;
 
     private WildFlyFeaturePackBuild(List<FeaturePackDependencyDescription> dependencies, ConfigDescription config,
             List<CopyArtifact> copyArtifacts, List<FilePermission> filePermissions, List<String> mkDirs,
-            List<FileFilter> windowsLineEndFilters, List<FileFilter> unixLineEndFilters) {
+            List<FileFilter> windowsLineEndFilters, List<FileFilter> unixLineEndFilters,
+            boolean packageSchemas, Set<String> schemaGroups) {
         this.dependencies = dependencies;
         this.config = config;
         this.copyArtifacts = copyArtifacts;
@@ -174,6 +200,8 @@ public class WildFlyFeaturePackBuild {
         this.mkDirs = mkDirs;
         this.windowsLineEndFilters = windowsLineEndFilters;
         this.unixLineEndFilters = unixLineEndFilters;
+        this.packageSchemas = packageSchemas;
+        this.schemaGroups = schemaGroups;
     }
 
     public List<FeaturePackDependencyDescription> getDependencies() {
@@ -202,5 +230,13 @@ public class WildFlyFeaturePackBuild {
 
     public List<FileFilter> getUnixLineEndFilters() {
         return unixLineEndFilters;
+    }
+
+    public boolean isPackageSchemas() {
+        return packageSchemas;
+    }
+
+    public boolean isSchemaGroup(String groupId) {
+        return schemaGroups.contains(groupId);
     }
 }
