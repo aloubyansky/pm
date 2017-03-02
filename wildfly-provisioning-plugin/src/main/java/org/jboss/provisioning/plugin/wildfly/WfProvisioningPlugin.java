@@ -16,6 +16,7 @@
  */
 package org.jboss.provisioning.plugin.wildfly;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -29,17 +30,19 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.jboss.provisioning.ArtifactCoords;
-import org.jboss.provisioning.ArtifactResolutionException;
 import org.jboss.provisioning.Constants;
 import org.jboss.provisioning.Errors;
 import org.jboss.provisioning.ProvisioningException;
@@ -53,6 +56,7 @@ import org.jboss.provisioning.state.ProvisionedFeaturePack;
 import org.jboss.provisioning.util.IoUtils;
 import org.jboss.provisioning.util.LayoutUtils;
 import org.jboss.provisioning.util.PropertyUtils;
+import org.jboss.provisioning.util.ZipUtils;
 
 /**
  *
@@ -68,6 +72,7 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
     private Properties tasksProps;
 
     private boolean thinServer;
+    private Set<String> schemaGroups = Collections.emptySet();
 
     private StandaloneConfigGenerator standaloneGenerator;
     private DomainConfigGenerator domainScriptCollector;
@@ -170,6 +175,27 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
         if(!Files.exists(packagesDir)) {
             throw new ProvisioningException(Errors.pathDoesNotExist(packagesDir));
         }
+        if(provisionedFp.containsPackage("docs.schemas")) {
+            final Path schemaGroupsTxt = LayoutUtils.getPackageDir(fpDir, "docs.schemas", true)
+                    .resolve(WfConstants.PM).resolve(WfConstants.WILDFLY).resolve("schema-groups.txt");
+            if(Files.exists(schemaGroupsTxt)) {
+                try(BufferedReader reader = Files.newBufferedReader(schemaGroupsTxt)) {
+                    final String line = reader.readLine();
+                    switch(schemaGroups.size()) {
+                        case 0:
+                            schemaGroups = Collections.singleton(line);
+                            break;
+                        case 1:
+                            schemaGroups = new HashSet<>(schemaGroups);
+                        default:
+                            schemaGroups.add(line);
+                    }
+                } catch (IOException e) {
+                    throw new ProvisioningException(Errors.readFile(schemaGroupsTxt), e);
+                }
+            }
+        }
+
         for(String pkgName : provisionedFp.getPackageNames()) {
             final Path pmWfDir = packagesDir.resolve(pkgName).resolve(WfConstants.PM).resolve(WfConstants.WILDFLY);
             if(!Files.exists(pmWfDir)) {
@@ -233,64 +259,7 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
                     if(file.getFileName().toString().equals(WfConstants.MODULE_XML)) {
-                        final String originalContent = IoUtils.readFile(file);
-
-                        final String resolvedContent;
-                        if(thinServer) {
-                            try {
-                                resolvedContent = propertyHandler.replaceProperties(originalContent);
-                            } catch (Throwable t) {
-                                throw new IOException("Failed to replace properties for " + file, t);
-                            }
-                        } else {
-                            final String[] finalContent = new String[]{originalContent};
-                            propertyHandler.handlePoperties(originalContent, new PropertyResolver() {
-                                @Override
-                                public String resolveProperty(final String property) {
-                                    final int optionsIndex = property.indexOf('?');
-                                    final String artifactName;
-                                    final String expr;
-                                    if(optionsIndex > 0) {
-                                        // TODO handle options
-                                        artifactName = property.substring(0, optionsIndex);
-                                        expr = artifactName + '\\' + property.substring(optionsIndex);
-                                    } else {
-                                        artifactName = property;
-                                        expr = property;
-                                    }
-                                    final String resolved = versionResolver.resolveProperty(artifactName);
-                                    if(resolved == null) {
-                                        return null;
-                                    }
-                                    final Path moduleArtifact;
-                                    try {
-                                        moduleArtifact = ctx.resolveArtifact(fromJBossModules(resolved, "jar"));
-                                    } catch (ArtifactResolutionException e) {
-                                        throw new IllegalStateException(e);
-                                    }
-                                    final String artifactFileName = moduleArtifact.getFileName().toString();
-                                    try {
-                                        IoUtils.copy(moduleArtifact, installDir.resolve(fpModuleDir.relativize(file.getParent())).resolve(artifactFileName));
-                                    } catch (IOException e) {
-                                        throw new IllegalStateException(e);
-                                    }
-                                    // update module xml content
-                                    finalContent[0] = finalContent[0].replaceFirst("<artifact\\s+name=\"\\$\\{" + expr
-                                          + "\\}\"\\s*/>", "<resource-root path=\"" + artifactFileName + "\"/>");
-                                    // it's also possible that this is an element with nested content
-                                    // this regex involves a good deal of backtracking but it seems to work
-                                    finalContent[0] = Pattern.compile(
-                                            "<artifact\\s+name=\"\\$\\{" + expr + "\\}\"\\s*>(.*)</artifact>",
-                                            Pattern.DOTALL)
-                                            .matcher(finalContent[0])
-                                            .replaceFirst("<resource-root path=\"" + artifactFileName + "\">$1</resource-root>");
-
-                                    return resolved;
-                                }
-                            });
-                            resolvedContent = finalContent[0];
-                        }
-                        IoUtils.writeFile(installDir.resolve(fpModuleDir.relativize(file)), resolvedContent);
+                        IoUtils.writeFile(installDir.resolve(fpModuleDir.relativize(file)), processModule(fpModuleDir, installDir, file));
                     } else {
                         Files.copy(file, installDir.resolve(fpModuleDir.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
                     }
@@ -299,6 +268,111 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
             });
         } catch (IOException e) {
             throw new ProvisioningException("Failed to process modules from package " + pkgName + " from feature-pack " + fp, e);
+        }
+    }
+
+    private String processModule(Path fpModuleDir, final Path installDir, Path file) throws IOException {
+        final String originalContent = IoUtils.readFile(file);
+        final String resolvedContent;
+        if(thinServer) {
+            final PropertyResolver propertyResolver;
+            if(schemaGroups.isEmpty()) {
+                propertyResolver = propertyHandler.getPropertyResolver();
+            } else {
+                final PropertyResolver targetResolver = propertyHandler.getPropertyResolver();
+                propertyResolver = new PropertyResolver() {
+                    @Override
+                    public String resolveProperty(String property) {
+                        final String resolved = targetResolver.resolveProperty(property);
+                        if(resolved == null) {
+                            return null;
+                        }
+                        final ArtifactCoords coords = fromJBossModules(resolved, "jar");
+                        if(schemaGroups.contains(coords.getGroupId())) {
+                            try {
+                                extractSchemas(ctx.resolveArtifact(coords));
+                            } catch (ProvisioningException e) {
+                                throw new IllegalStateException(e);
+                            }
+                        }
+                        return resolved;
+                    }
+                };
+            }
+            try {
+                resolvedContent = propertyHandler.replaceProperties(originalContent, propertyResolver);
+            } catch (Throwable t) {
+                throw new IOException("Failed to replace properties for " + file, t);
+            }
+        } else {
+            final String[] finalContent = new String[]{originalContent};
+            propertyHandler.handlePoperties(originalContent, new PropertyResolver() {
+                @Override
+                public String resolveProperty(final String property) {
+                    final int optionsIndex = property.indexOf('?');
+                    final String artifactName;
+                    final String expr;
+                    if(optionsIndex > 0) {
+                        // TODO handle options
+                        artifactName = property.substring(0, optionsIndex);
+                        expr = artifactName + '\\' + property.substring(optionsIndex);
+                    } else {
+                        artifactName = property;
+                        expr = property;
+                    }
+                    final String resolved = versionResolver.resolveProperty(artifactName);
+                    if(resolved == null) {
+                        return null;
+                    }
+                    final ArtifactCoords coords = fromJBossModules(resolved, "jar");
+                    final Path moduleArtifact;
+                    try {
+                        moduleArtifact = ctx.resolveArtifact(coords);
+                        if(schemaGroups.contains(coords.getGroupId())) {
+                            extractSchemas(moduleArtifact);
+                        }
+                    } catch (ProvisioningException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    final String artifactFileName = moduleArtifact.getFileName().toString();
+                    try {
+                        IoUtils.copy(moduleArtifact, installDir.resolve(fpModuleDir.relativize(file.getParent())).resolve(artifactFileName));
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    // update module xml content
+                    finalContent[0] = finalContent[0].replaceFirst("<artifact\\s+name=\"\\$\\{" + expr
+                          + "\\}\"\\s*/>", "<resource-root path=\"" + artifactFileName + "\"/>");
+                    // it's also possible that this is an element with nested content
+                    // this regex involves a good deal of backtracking but it seems to work
+                    finalContent[0] = Pattern.compile(
+                            "<artifact\\s+name=\"\\$\\{" + expr + "\\}\"\\s*>(.*)</artifact>",
+                            Pattern.DOTALL)
+                            .matcher(finalContent[0])
+                            .replaceFirst("<resource-root path=\"" + artifactFileName + "\">$1</resource-root>");
+
+                    return resolved;
+                }
+            });
+            resolvedContent = finalContent[0];
+        }
+        return resolvedContent;
+    }
+
+    private void extractSchemas(Path moduleArtifact) throws ProvisioningException {
+        final Path targetSchemasDir = this.ctx.getInstallDir().resolve(WfConstants.DOCS).resolve("schemas");
+        try {
+            Files.createDirectories(targetSchemasDir);
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.mkdirs(targetSchemasDir), e);
+        }
+        try (final FileSystem jarFS = FileSystems.newFileSystem(moduleArtifact, null)) {
+            final Path schemaSrc = jarFS.getPath(WfConstants.SCHEMA);
+            if (Files.exists(schemaSrc)) {
+                ZipUtils.copyFromZip(schemaSrc.toAbsolutePath(), targetSchemasDir);
+            }
+        } catch (IOException e) {
+            throw new ProvisioningException(Errors.readFile(moduleArtifact), e);
         }
     }
 

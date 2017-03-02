@@ -134,7 +134,7 @@ public class PackageScripts {
             .addDomain(Script.newScript("domain.cli"))
             .addDomain(Script.newScript("variable.cli", true))
             .addDomain(Script.newScript("profile.cli", "/profile=$profile"))
-            .addHost(Script.newScript("script.cli", "/host=${host:master}"))
+            .addHost(Script.newScript("host.cli", "/host=${host:master}"))
             .build();
 
     private final List<Script> standalone;

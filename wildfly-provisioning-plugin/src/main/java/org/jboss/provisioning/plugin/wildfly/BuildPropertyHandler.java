@@ -64,7 +64,15 @@ public class BuildPropertyHandler {
         this.properties = properties;
     }
 
+    public PropertyResolver getPropertyResolver() {
+        return properties;
+    }
+
     public String replaceProperties(final String value) {
+        return replaceProperties(value, properties);
+    }
+
+    public String replaceProperties(final String value, PropertyResolver properties) {
         final StringBuilder sb = new StringBuilder();
         final ContentHandler handler = new ContentHandler() {
             @Override

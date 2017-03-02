@@ -37,7 +37,6 @@ public class WildFlyFeaturePackBuild {
     public static class Builder {
 
         private List<FeaturePackDependencySpec> dependencies = Collections.emptyList();
-        private boolean packageSchemas;
         private Set<String> schemaGroups = Collections.emptySet();
         private Set<String> defaultPackages = new HashSet<>();
 
@@ -59,11 +58,6 @@ public class WildFlyFeaturePackBuild {
                 default:
                     dependencies.add(dependency);
             }
-            return this;
-        }
-
-        public Builder setPackageSchemas() {
-            this.packageSchemas = true;
             return this;
         }
 
@@ -90,13 +84,11 @@ public class WildFlyFeaturePackBuild {
     }
 
     private final List<FeaturePackDependencySpec> dependencies;
-    private final boolean packageSchemas;
     private final Set<String> schemaGroups;
     private final Set<String> defaultPackages;
 
     private WildFlyFeaturePackBuild(Builder builder) {
         this.dependencies = Collections.unmodifiableList(builder.dependencies);
-        this.packageSchemas = builder.packageSchemas;
         this.schemaGroups = Collections.unmodifiableSet(builder.schemaGroups);
         this.defaultPackages = Collections.unmodifiableSet(builder.defaultPackages);
     }
@@ -109,11 +101,15 @@ public class WildFlyFeaturePackBuild {
         return dependencies;
     }
 
-    public boolean isPackageSchemas() {
-        return packageSchemas;
+    public boolean hasSchemaGroups() {
+        return !schemaGroups.isEmpty();
     }
 
     public boolean isSchemaGroup(String groupId) {
         return schemaGroups.contains(groupId);
+    }
+
+    public Set<String> getSchemaGroups() {
+        return schemaGroups;
     }
 }
