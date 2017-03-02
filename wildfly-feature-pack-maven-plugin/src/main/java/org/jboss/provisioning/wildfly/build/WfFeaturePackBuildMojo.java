@@ -17,12 +17,11 @@
 package org.jboss.provisioning.wildfly.build;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -70,7 +69,6 @@ import org.jboss.provisioning.spec.FeaturePackSpec.Builder;
 import org.jboss.provisioning.util.FeaturePackLayoutDescriber;
 import org.jboss.provisioning.util.IoUtils;
 import org.jboss.provisioning.util.PropertyUtils;
-import org.jboss.provisioning.util.ZipUtils;
 import org.jboss.provisioning.wildfly.build.ModuleParseResult.ModuleDependency;
 import org.jboss.provisioning.xml.FeaturePackXmlWriter;
 import org.jboss.provisioning.xml.PackageXmlParser;
@@ -355,6 +353,37 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
                             docsBuilder.addDependency(docName, true);
                         }
                     }
+
+                    if(wfFpConfig.hasSchemaGroups()) {
+                        docsBuilder.addDependency("docs.schemas", true);
+                        final Path schemasPackageDir = packagesDir.resolve("docs.schemas");
+                        final Path schemaGroupsTxt = schemasPackageDir.resolve(WfConstants.PM).resolve(WfConstants.WILDFLY).resolve("schema-groups.txt");
+                        BufferedWriter writer = null;
+                        try {
+                            Files.createDirectories(schemasPackageDir);
+                            final PackageSpec docsSchemasSpec = PackageSpec.forName("docs.schemas");
+                            fpBuilder.addPackage(docsSchemasSpec);
+                            PackageXmlWriter.getInstance().write(docsSchemasSpec, schemasPackageDir.resolve(Constants.PACKAGE_XML));
+                            Files.createDirectories(schemaGroupsTxt.getParent());
+                            writer = Files.newBufferedWriter(schemaGroupsTxt);
+                            for (String group : wfFpConfig.getSchemaGroups()) {
+                                writer.write(group);
+                                writer.newLine();
+                            }
+                        } catch (IOException e) {
+                            throw new MojoExecutionException(Errors.mkdirs(schemaGroupsTxt.getParent()), e);
+                        } catch (XMLStreamException e) {
+                            throw new MojoExecutionException(Errors.writeFile(schemaGroupsTxt), e);
+                        } finally {
+                            if(writer != null) {
+                                try {
+                                    writer.close();
+                                } catch (IOException e) {
+                                }
+                            }
+                        }
+                    }
+
                     PackageSpec docsSpec = docsBuilder.build();
                     writeXml(docsSpec, packagesDir.resolve(pkgName));
                     fpBuilder.addPackage(docsSpec);
@@ -499,36 +528,9 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
                 throw new MojoExecutionException("Failed to add package", e);
             }
 
-            // extract schemas
-            if (wfFpConfig.isPackageSchemas()) {
-                Util.processModuleArtifacts(parsedModule, coords -> {
-                    if (wfFpConfig.isSchemaGroup(coords.getGroupId())) {
-                        final Path artifactFile;
-                        try {
-                            artifactFile = resolveArtifact(coords);
-                        } catch (ProvisioningException e) {
-                            throw new IOException(FpMavenErrors.artifactResolution(coords), e);
-                        }
-                        extractSchemas(resourcesDir, artifactFile);
-                    }
-                });
-            }
-
             if (!OS_WINDOWS) {
                 Files.setPosixFilePermissions(targetXml, Files.getPosixFilePermissions(moduleXml));
             }
-        }
-    }
-
-    private void extractSchemas(Path resourcesDir, final Path artifactFile) throws IOException {
-        final FileSystem jarFS = FileSystems.newFileSystem(artifactFile, null);
-        final Path schemaSrc = jarFS.getPath(WfConstants.SCHEMA);
-        if (Files.exists(schemaSrc)) {
-            final Path targetSchemaDir = resourcesDir.resolve(WfConstants.CONTENT).resolve(WfConstants.DOCS).resolve(WfConstants.SCHEMA);
-            if(!Files.exists(targetSchemaDir)) {
-                Files.createDirectories(targetSchemaDir);
-            }
-            ZipUtils.copyFromZip(schemaSrc.toAbsolutePath(), targetSchemaDir);
         }
     }
 

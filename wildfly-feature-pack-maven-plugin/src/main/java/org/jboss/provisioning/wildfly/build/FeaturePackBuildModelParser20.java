@@ -191,7 +191,6 @@ class FeaturePackBuildModelParser20 implements XMLElementReader<WildFlyFeaturePa
                             parseDefaultPackages(reader, builder);
                             break;
                         case PACKAGE_SCHEMAS:
-                            builder.setPackageSchemas();
                             parsePackageSchemas(reader, builder);
                             break;
                         default:

@@ -29,9 +29,9 @@ import org.jboss.provisioning.state.ProvisionedFeaturePack;
  *
  * @author Alexey Loubyansky
  */
-class DomainScriptCollector extends ScriptCollector {
+class DomainConfigGenerator extends ScriptCollector {
 
-    DomainScriptCollector(ProvisioningContext ctx) throws ProvisioningException {
+    DomainConfigGenerator(ProvisioningContext ctx) throws ProvisioningException {
         super(ctx);
         init("domain", "embed-host-controller --empty-host-config --empty-domain-config --remove-existing-host-config --remove-existing-domain-config");
     }
