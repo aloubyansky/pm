@@ -17,6 +17,7 @@
 package org.jboss.provisioning.runtime;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,6 +25,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.Constants;
 import org.jboss.provisioning.Errors;
@@ -34,9 +38,11 @@ import org.jboss.provisioning.spec.FeaturePackSpec;
 import org.jboss.provisioning.spec.FeatureSpec;
 import org.jboss.provisioning.type.ParameterTypeProvider;
 import org.jboss.provisioning.type.builtin.BuiltInParameterTypeProvider;
+import org.jboss.provisioning.util.LayoutUtils;
 import org.jboss.provisioning.util.PmCollections;
 import org.jboss.provisioning.xml.FeatureGroupXmlParser;
 import org.jboss.provisioning.xml.FeatureSpecXmlParser;
+import org.jboss.provisioning.xml.PackageXmlParser;
 
 /**
  *
@@ -62,14 +68,41 @@ class FeaturePackRuntimeBuilder {
         this.spec = spec;
     }
 
-    PackageRuntime.Builder newPackage(String name, Path dir) {
-        final PackageRuntime.Builder pkgBuilder = PackageRuntime.builder(name, dir);
-        pkgBuilders = PmCollections.put(pkgBuilders, name, pkgBuilder);
-        return pkgBuilder;
-    }
+    boolean resolvePackage(String pkgName, ProvisioningRuntimeBuilder rt) throws ProvisioningException {
+        if(pkgBuilders.containsKey(pkgName)) {
+            return true;
+        }
 
-    void addPackage(String name) {
-        pkgOrder.add(name);
+        final Path pkgDir = LayoutUtils.getPackageDir(dir, pkgName, false);
+        if(!Files.exists(pkgDir)) {
+            return false;
+        }
+        final Path pkgXml = pkgDir.resolve(Constants.PACKAGE_XML);
+        if(!Files.exists(pkgXml)) {
+            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(pkgXml));
+        }
+
+        final PackageRuntime.Builder pkgBuilder;
+        try(BufferedReader reader = Files.newBufferedReader(pkgXml)) {
+            pkgBuilder = PackageRuntime.builder(PackageXmlParser.getInstance().parse(reader), pkgDir);
+        } catch (IOException | XMLStreamException e) {
+            throw new ProvisioningException(Errors.parseXml(pkgXml), e);
+        }
+        pkgBuilders = PmCollections.put(pkgBuilders, pkgName, pkgBuilder);
+
+        if(pkgBuilder.spec.hasPackageDeps()) {
+            try {
+                rt.processPackageDeps(pkgBuilder.spec);
+            } catch(ProvisioningException e) {
+                throw new ProvisioningDescriptionException(Errors.resolvePackage(gav, pkgName), e);
+            }
+        }
+
+        pkgOrder.add(pkgName);
+        if(!ordered) {
+            rt.orderFpRtBuilder(this);
+        }
+        return true;
     }
 
     FeatureGroup getFeatureGroupSpec(String name) throws ProvisioningException {

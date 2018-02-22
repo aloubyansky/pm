@@ -67,7 +67,6 @@ import org.jboss.provisioning.util.LayoutUtils;
 import org.jboss.provisioning.util.PmCollections;
 import org.jboss.provisioning.util.ZipUtils;
 import org.jboss.provisioning.xml.FeaturePackXmlParser;
-import org.jboss.provisioning.xml.PackageXmlParser;
 
 
 /**
@@ -673,28 +672,30 @@ public class ProvisioningRuntimeBuilder {
     }
 
     private boolean processConfigItemContainer(ConfigItemContainer ciContainer) throws ProvisioningException {
+        if(!ciContainer.hasItems()) {
+            return false;
+        }
         boolean resolvedFeatures = false;
         final FeaturePackRuntimeBuilder prevFpOrigin = ciContainer.isResetFeaturePackOrigin() ? setThisOrigin(currentOrigin) : null;
-        if(ciContainer.hasItems()) {
-            for(ConfigItem item : ciContainer.getItems()) {
-                final FeaturePackRuntimeBuilder originalFp = setOrigin(item.getOrigin());
-                try {
-                    if (item.isGroup()) {
-                        final FeatureGroup nestedFg = (FeatureGroup) item;
-                        resolvedFeatures |= processFeatureGroup(nestedFg);
-                    } else {
-                        resolvedFeatures |= resolveFeature(configStack, (FeatureConfig) item);
-                    }
-                } catch (ProvisioningException e) {
-                    if(currentOrigin == null) {
-                        throw e;
-                    }
-                    throw new ProvisioningException(item.isGroup() ?
-                            Errors.failedToProcess(currentOrigin.gav, ((FeatureGroup)item).getName()) : Errors.failedToProcess(currentOrigin.gav, (FeatureConfig)item),
-                            e);
-                } finally {
-                    setOrigin(originalFp);
+        for (ConfigItem item : ciContainer.getItems()) {
+            final FeaturePackRuntimeBuilder originalFp = setOrigin(item.getOrigin());
+            try {
+                if (item.isGroup()) {
+                    final FeatureGroup nestedFg = (FeatureGroup) item;
+                    resolvedFeatures |= processFeatureGroup(nestedFg);
+                } else {
+                    resolvedFeatures |= resolveFeature(configStack, (FeatureConfig) item);
                 }
+            } catch (ProvisioningException e) {
+                if (currentOrigin == null) {
+                    throw e;
+                }
+                throw new ProvisioningException(
+                        item.isGroup() ? Errors.failedToProcess(currentOrigin.gav, ((FeatureGroup) item).getName())
+                                : Errors.failedToProcess(currentOrigin.gav, (FeatureConfig) item),
+                        e);
+            } finally {
+                setOrigin(originalFp);
             }
         }
         if(prevFpOrigin != null) {
@@ -845,40 +846,41 @@ public class ProvisioningRuntimeBuilder {
         return fp;
     }
 
-    private void resolvePackage(final String pkgName)
-            throws ProvisioningException {
-        final PackageRuntime.Builder pkgRt = currentOrigin.pkgBuilders.get(pkgName);
-        if(pkgRt != null) {
+    private void resolvePackage(final String pkgName) throws ProvisioningException {
+        if(resolvePackage(currentOrigin, pkgName, Collections.emptySet(), false)) {
             return;
         }
-
-        final PackageRuntime.Builder pkg = currentOrigin.newPackage(pkgName, LayoutUtils.getPackageDir(currentOrigin.dir, pkgName, false));
-        if(!Files.exists(pkg.dir)) {
-            throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.gav, pkgName));
-        }
-        final Path pkgXml = pkg.dir.resolve(Constants.PACKAGE_XML);
-        if(!Files.exists(pkgXml)) {
-            throw new ProvisioningDescriptionException(Errors.pathDoesNotExist(pkgXml));
-        }
-        try(BufferedReader reader = Files.newBufferedReader(pkgXml)) {
-            pkg.spec = PackageXmlParser.getInstance().parse(reader);
-        } catch (IOException | XMLStreamException e) {
-            throw new ProvisioningException(Errors.parseXml(pkgXml), e);
-        }
-
-        if(pkg.spec.hasPackageDeps()) {
-            try {
-                processPackageDeps(pkg.spec);
-            } catch(ProvisioningException e) {
-                throw new ProvisioningDescriptionException(Errors.resolvePackage(currentOrigin.gav, pkg.spec.getName()), e);
-            }
-        }
-        currentOrigin.addPackage(pkgName);
+        throw new ProvisioningDescriptionException(Errors.packageNotFound(currentOrigin.gav, pkgName));
     }
 
-    private void processPackageDeps(final PackageDepsSpec pkgDeps)
-            throws ProvisioningException {
-        boolean resolvedPackages = false;
+    private boolean resolvePackage(FeaturePackRuntimeBuilder origin, String name, Set<ArtifactCoords.Ga> visitedGas, boolean switchOrigin) throws ProvisioningException {
+        final FeaturePackDepsConfig fpDeps;
+        if (origin != null) {
+            if(origin.resolvePackage(name, this)) {
+                return true;
+            }
+            fpDeps = origin.spec;
+            visitedGas = PmCollections.add(visitedGas, origin.gav.toGa());
+        } else {
+            fpDeps = config;
+        }
+
+        if (!fpDeps.hasFeaturePackDeps()) {
+            return false;
+        }
+
+        for (FeaturePackConfig fpDep : fpDeps.getFeaturePackDeps()) {
+            if (visitedGas.contains(fpDep.getGav().toGa())) {
+                continue;
+            }
+            if(resolvePackage(getOrLoadFpBuilder(fpDep.getGav()), name, visitedGas, switchOrigin)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void processPackageDeps(final PackageDepsSpec pkgDeps) throws ProvisioningException {
         if (pkgDeps.hasLocalPackageDeps()) {
             for (PackageDependencySpec dep : pkgDeps.getLocalPackageDeps()) {
                 if(fpConfigStack.isPackageExcluded(currentOrigin.gav.toGa(), dep.getName())) {
@@ -889,7 +891,6 @@ public class ProvisioningRuntimeBuilder {
                 }
                 try {
                     resolvePackage(dep.getName());
-                    resolvedPackages = true;
                 } catch(ProvisioningDescriptionException e) {
                     if(dep.isOptional()) {
                         continue;
@@ -900,9 +901,6 @@ public class ProvisioningRuntimeBuilder {
             }
         }
         if(!pkgDeps.hasExternalPackageDeps()) {
-            if (!currentOrigin.ordered && resolvedPackages) {
-                orderFpRtBuilder(currentOrigin);
-            }
             return;
         }
         for (String origin : pkgDeps.getPackageOrigins()) {
@@ -918,7 +916,6 @@ public class ProvisioningRuntimeBuilder {
                     }
                     try {
                         resolvePackage(pkgDep.getName());
-                        resolvedPackages = true;
                     } catch (ProvisioningDescriptionException e) {
                         if (pkgDep.isOptional()) {
                             continue;
@@ -927,16 +924,13 @@ public class ProvisioningRuntimeBuilder {
                         }
                     }
                 }
-                if (!currentOrigin.ordered && resolvedPackages) {
-                    orderFpRtBuilder(currentOrigin);
-                }
             } finally {
                 setOrigin(originalFp);
             }
         }
     }
 
-    private void orderFpRtBuilder(final FeaturePackRuntimeBuilder fpRtBuilder) {
+    void orderFpRtBuilder(final FeaturePackRuntimeBuilder fpRtBuilder) {
         fpRtBuildersOrdered.add(fpRtBuilder);
         fpRtBuilder.ordered = true;
     }

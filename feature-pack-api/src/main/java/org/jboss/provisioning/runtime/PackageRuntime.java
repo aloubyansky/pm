@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,11 @@ public class PackageRuntime implements ProvisionedPackage {
 
     static class Builder {
         final Path dir;
-        PackageSpec spec;
+        final PackageSpec spec;
 
-        private Builder(String name, Path dir) {
+        private Builder(PackageSpec spec, Path dir) {
             this.dir = dir;
+            this.spec = spec;
         }
 
         PackageRuntime build() {
@@ -43,8 +44,8 @@ public class PackageRuntime implements ProvisionedPackage {
         }
     }
 
-    static Builder builder(String name, Path dir) {
-        return new Builder(name, dir);
+    static Builder builder(PackageSpec spec, Path dir) {
+        return new Builder(spec, dir);
     }
 
     private final PackageSpec spec;
