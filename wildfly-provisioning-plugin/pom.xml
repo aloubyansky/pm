@@ -55,6 +55,7 @@
           <artifactId>aesh-readline</artifactId>
         </exclusion>
       </exclusions>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.wildfly.core</groupId>
@@ -109,33 +110,15 @@
             <configuration>
               <artifactSet>
                 <excludes>
+                  <exclude>org.aesh:aesh</exclude>
+                  <exclude>org.aesh:aesh-extensions</exclude>
                   <exclude>org.jboss.modules:jboss-modules</exclude>
                   <exclude>org.jboss.pm:feature-pack-api</exclude>
-                  <!--<exclude>org.wildfly.core:wildfly-cli</exclude>
+                  <exclude>org.wildfly.core:wildfly-cli</exclude>
                   <exclude>org.wildfly.core:wildfly-controller-client</exclude>
-                  <exclude>org.wildfly.core:wildfly-protocol</exclude>-->
+                  <exclude>org.wildfly.core:wildfly-protocol</exclude>
                 </excludes>
               </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>org.aesh:aesh</artifact>
-                  <excludes>
-                    <exclude>*.class</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <!--
-              <artifactSet>
-                <excludes>
-                  <exclude>classworlds:classworlds</exclude>
-                  <exclude>junit:junit</exclude>
-                  <exclude>jmock:*</exclude>
-                  <exclude>*:xml-apis</exclude>
-                  <exclude>org.apache.maven:lib:tests</exclude>
-                  <exclude>log4j:log4j:jar:</exclude>
-                </excludes>
-              </artifactSet>
-              -->
             </configuration>
           </execution>
         </executions>

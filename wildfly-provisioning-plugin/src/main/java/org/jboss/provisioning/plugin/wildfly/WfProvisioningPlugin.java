@@ -62,6 +62,8 @@ import org.jboss.provisioning.plugin.wildfly.config.CopyPath;
 import org.jboss.provisioning.plugin.wildfly.config.DeletePath;
 import org.jboss.provisioning.plugin.wildfly.config.FilePermission;
 import org.jboss.provisioning.plugin.wildfly.config.WildFlyPackageTasks;
+import org.jboss.provisioning.plugin.wildfly.sandbox.EmbeddedScriptRunner;
+import org.jboss.provisioning.plugin.wildfly.sandbox.WfConfig2EmbeddedScriptHandler;
 import org.jboss.provisioning.runtime.FeaturePackRuntime;
 import org.jboss.provisioning.runtime.PackageRuntime;
 import org.jboss.provisioning.runtime.ProvisioningRuntime;
@@ -185,9 +187,11 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
             throw new ProvisioningException(Errors.mkdirs(script.getParent()));
         }
 
-        final WfProvisionedConfigHandler configHandler;
+        final WfConfig2EmbeddedScriptHandler configHandler;
+        //final WfProvisionedConfigHandler configHandler;
         try(BufferedWriter writer = Files.newBufferedWriter(script)) {
-            configHandler = new WfProvisionedConfigHandler(runtime, writer);
+            configHandler = new WfConfig2EmbeddedScriptHandler(runtime, writer);
+            //configHandler = new WfProvisionedConfigHandler(runtime, writer);
             for (ProvisionedConfig config : runtime.getConfigs()) {
                 if (messageWriter.isVerboseEnabled()) {
                     final StringBuilder msg = new StringBuilder(64).append("Feature config");
@@ -211,7 +215,20 @@ public class WfProvisioningPlugin implements ProvisioningPlugin {
             throw new ProvisioningException(Errors.writeFile(script), e);
         }
 
-        CliScriptRunner.runCliScript(runtime.getStagedDir(), script, messageWriter);
+        //CliScriptRunner.runCliScript(runtime.getStagedDir(), script, messageWriter);
+        try {
+            EmbeddedScriptRunner.run(runtime.getStagedDir(), script);
+        } catch (Exception e) {
+            throw new ProvisioningException("Failed to generate configs", e);
+        }
+
+//        try {
+//            IoUtils.copy(script, Paths.get("/home/aloubyansky/pm-scripts/all-configs.cli"));
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+
         configHandler.cleanup();
     }
 
