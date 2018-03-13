@@ -21,6 +21,7 @@ import static org.jboss.provisioning.Constants.PM_UNDEFINED;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.jboss.provisioning.plugin.ProvisionedConfigHandler;
 import org.jboss.provisioning.plugin.wildfly.WfConstants;
 import org.jboss.provisioning.runtime.ProvisioningRuntime;
 import org.jboss.provisioning.runtime.ResolvedFeatureSpec;
+import org.jboss.provisioning.runtime.ResolvedSpecId;
 import org.jboss.provisioning.spec.FeatureAnnotation;
 import org.jboss.provisioning.state.ProvisionedConfig;
 import org.jboss.provisioning.state.ProvisionedFeature;
@@ -154,7 +156,6 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
 
     private List<ManagedOp> createManagedOperation(ResolvedFeatureSpec spec, FeatureAnnotation annotation, String name, int operation) throws ProvisioningException {
         final ManagedOp mop = new ManagedOp();
-        mop.reset();
         mop.name = name;
         mop.op = operation;
         mop.addrPref = annotation.getElement(WfConstants.ADDR_PREF);
@@ -233,15 +234,6 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
         @Override
         public String toString() {
             return "ManagedOp{" + "line=" + line + ", addrPref=" + addrPref + ", name=" + name + ", addrParams=" + addrParams + ", opParams=" + opParams + ", op=" + op + '}';
-        }
-
-        void reset() {
-            line = null;
-            addrPref = null;
-            name = null;
-            addrParams = Collections.emptyList();
-            opParams = Collections.emptyList();
-            op = OP;
         }
 
         private void writeOp(ProvisionedFeature feature) throws ProvisioningException {
@@ -343,6 +335,8 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
     private final WfConfigGenerator configGen;
 
     private List<ManagedOp> ops = new ArrayList<>();
+    private Map<ResolvedSpecId, List<ManagedOp>> specOps = new HashMap<>();
+
     private NameFilter paramFilter;
 
     private ModelNode composite;
@@ -392,35 +386,25 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
 
     @Override
     public void nextSpec(ResolvedFeatureSpec spec) throws ProvisioningException {
-        ops.clear();
+
         messageWriter.verbose("    SPEC %s", spec.getName());
         if(!spec.hasAnnotations()) {
+            ops = Collections.emptyList();
             return;
         }
 
+        ops = specOps.get(spec.getId());
+        if(ops != null) {
+            return;
+        }
+
+        ops = new ArrayList<ManagedOp>();
         for (FeatureAnnotation annotation : spec.getAnnotations()) {
-            if(annotation.getName().equals(WfConstants.JBOSS_OP)) {
+            if (annotation.getName().equals(WfConstants.JBOSS_OP)) {
                 ops.addAll(nextAnnotation(spec, annotation));
             }
         }
-    }
-
-    private List<ManagedOp> nextAnnotation(final ResolvedFeatureSpec spec, final FeatureAnnotation annotation) throws ProvisioningException {
-        if (annotation.hasElement(WfConstants.LINE)) {
-            final ManagedOp mop = new ManagedOp();
-            mop.reset();
-            mop.line = annotation.getElement(WfConstants.LINE);
-            return Collections.singletonList(mop);
-        }
-        final String name = annotation.getElement(WfConstants.NAME);
-        switch (name) {
-            case WfConstants.WRITE_ATTRIBUTE:
-                return createWriteAttributeManagedOperation(spec, annotation);
-            case WfConstants.LIST_ADD:
-                return createAddListManagedOperation(spec, annotation);
-            default:
-                return createManagedOperation(spec, annotation, name, OP);
-        }
+        specOps.put(spec.getId(), ops);
     }
 
     @Override
@@ -450,6 +434,23 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
     @Override
     public void done() throws ProvisioningException {
         configGen.stopEmbedded();
+    }
+
+    private List<ManagedOp> nextAnnotation(final ResolvedFeatureSpec spec, final FeatureAnnotation annotation) throws ProvisioningException {
+        if (annotation.hasElement(WfConstants.LINE)) {
+            final ManagedOp mop = new ManagedOp();
+            mop.line = annotation.getElement(WfConstants.LINE);
+            return Collections.singletonList(mop);
+        }
+        final String name = annotation.getElement(WfConstants.NAME);
+        switch (name) {
+            case WfConstants.WRITE_ATTRIBUTE:
+                return createWriteAttributeManagedOperation(spec, annotation);
+            case WfConstants.LIST_ADD:
+                return createAddListManagedOperation(spec, annotation);
+            default:
+                return createManagedOperation(spec, annotation, name, OP);
+        }
     }
 
     private String[] getEmbeddedArgs(ProvisionedConfig config) {
