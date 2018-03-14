@@ -80,21 +80,24 @@ public class WfConfigGenerator {
                 config.handle(configHandler);
             }
         } finally {
-            if(embeddedProcess != null) {
-                stopEmbedded();
-            }
-            Set<String> toClear = Collections.emptySet();
-            for(Map.Entry<?, ?> prop : System.getProperties().entrySet()) {
-                final Object value = originalProps.get(prop.getKey());
-                if(value != null) {
-                    System.setProperty(prop.getKey().toString(), value.toString());
-                } else {
-                    toClear = PmCollections.add(toClear, prop.getKey().toString());
+            try {
+                if (embeddedProcess != null) {
+                    stopEmbedded();
                 }
-            }
-            if(!toClear.isEmpty()) {
-                for(String prop : toClear) {
-                    System.clearProperty(prop);
+            } finally {
+                Set<String> toClear = Collections.emptySet();
+                for (Map.Entry<?, ?> prop : System.getProperties().entrySet()) {
+                    final Object value = originalProps.get(prop.getKey());
+                    if (value != null) {
+                        System.setProperty(prop.getKey().toString(), value.toString());
+                    } else {
+                        toClear = PmCollections.add(toClear, prop.getKey().toString());
+                    }
+                }
+                if (!toClear.isEmpty()) {
+                    for (String prop : toClear) {
+                        System.clearProperty(prop);
+                    }
                 }
             }
         }
