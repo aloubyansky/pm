@@ -113,19 +113,19 @@ class FeaturePackRuntimeBuilder {
             }
         }
         final Path specXml = dir.resolve(Constants.FEATURE_GROUPS).resolve(name + ".xml");
-        if (Files.exists(specXml)) {
-            try (BufferedReader reader = Files.newBufferedReader(specXml)) {
-                final FeatureGroup fgSpec = FeatureGroupXmlParser.getInstance().parse(reader);
-                if (fgSpecs == null) {
-                    fgSpecs = new HashMap<>();
-                }
-                fgSpecs.put(name, fgSpec);
-                return fgSpec;
-            } catch (Exception e) {
-                throw new ProvisioningException(Errors.parseXml(specXml), e);
-            }
+        if (!Files.exists(specXml)) {
+            return null;
         }
-        return null;
+        try (BufferedReader reader = Files.newBufferedReader(specXml)) {
+            final FeatureGroup fgSpec = FeatureGroupXmlParser.getInstance().parse(reader);
+            if (fgSpecs == null) {
+                fgSpecs = new HashMap<>();
+            }
+            fgSpecs.put(name, fgSpec);
+            return fgSpec;
+        } catch (Exception e) {
+            throw new ProvisioningException(Errors.parseXml(specXml), e);
+        }
     }
 
     ResolvedFeatureSpec getFeatureSpec(String name) throws ProvisioningException {

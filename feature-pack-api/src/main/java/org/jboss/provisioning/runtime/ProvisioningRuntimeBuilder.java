@@ -1117,6 +1117,48 @@ public class ProvisioningRuntimeBuilder {
         return null;
     }
 
+/*
+    private Set<ArtifactCoords.Ga> tmpGas = new HashSet<>();
+
+    private FeatureGroup getFeatureGroupSpec(String name) throws ProvisioningException {
+        tmpGas.clear();
+        final FeatureGroupTree fgTree = new FeatureGroupTree();
+        final Collection<FeaturePackConfig> fpConfigs = config.getFeaturePackDeps();
+        for(FeaturePackConfig fpConfig : fpConfigs) {
+            if(tmpGas.contains(fpConfig.getGav().toGa())) {
+                continue;
+            }
+            loadFeatureGroup(fpConfig, name, fgTree, tmpGas);
+        }
+        if(fgTree.isEmpty()) {
+            throw new ProvisioningDescriptionException("Failed to locate feature group '" + name + "' in " + (currentOrigin == null ? "the provisioning configuration" : currentOrigin.gav + " and its dependencies"));
+        }
+        //System.out.println("groups: " + tmpGroups.size());
+        return fgTree.getLastGroup();
+    }
+
+    private void loadFeatureGroup(FeaturePackConfig fpConfig, String name, FeatureGroupTree parent, Set<ArtifactCoords.Ga> visitedGas) throws ProvisioningException {
+        visitedGas.add(fpConfig.getGav().toGa());
+        final FeaturePackRuntimeBuilder fpRtBuilder = getOrLoadFpBuilder(fpConfig.getGav());
+        final FeatureGroup group = fpRtBuilder.getFeatureGroupSpec(name);
+        final FeatureGroupTree fgBranch;
+        if(group == null) {
+            fgBranch = parent;
+        } else {
+            fgBranch = new FeatureGroupTree(group);
+            parent.addBranch(fgBranch);
+        }
+        if(fpRtBuilder.spec.hasFeaturePackDeps()) {
+            for(FeaturePackConfig fpDep : fpRtBuilder.spec.getFeaturePackDeps()) {
+                if(visitedGas.contains(fpDep.getGav().toGa())) {
+                    continue;
+                }
+                loadFeatureGroup(fpDep, name, fgBranch, visitedGas);
+            }
+        }
+        visitedGas.remove(fpConfig.getGav().toGa());
+    }
+*/
     private ResolvedFeatureSpec getFeatureSpec(String name) throws ProvisioningException {
         return getFeatureSpec(name, false);
     }
