@@ -77,6 +77,9 @@ public class FeaturePackInstallMojo extends AbstractMojo {
     @Parameter(required = false, defaultValue = "false")
     private Boolean inheritPackages;
 
+    @Parameter(required = false, defaultValue = "false")
+    private Boolean inheritConfigs;
+
     @Parameter(required = true)
     private ArtifactItem featurePack;
 
@@ -101,6 +104,7 @@ public class FeaturePackInstallMojo extends AbstractMojo {
                 modelConfiguration == null ? null : modelConfiguration.toPath().toAbsolutePath(),
                 configs,
                 featurePack.getArtifactCoords().toGav().toString(),
+                inheritConfigs,
                 inheritPackages,
                 includedPackages,
                 excludedPackages,

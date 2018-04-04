@@ -21,8 +21,10 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Singleton;
+import org.apache.maven.project.MavenProject;
 
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
@@ -40,7 +42,8 @@ import org.jboss.provisioning.util.ZipUtils;
 @Singleton
 public class MavenPluginUtil extends AbstractLogEnabled {
 
-    public InstallRequest getInstallLayoutRequest(final Path layoutDir, final File pomFile) throws IOException {
+    public InstallRequest getInstallLayoutRequest(final Path layoutDir, final MavenProject project) throws IOException {
+        final File pomFile = project.getFile();
         final Logger logger = getLogger();
         final InstallRequest installReq = new InstallRequest();
         try (DirectoryStream<Path> wdStream = Files.newDirectoryStream(layoutDir, entry -> Files.isDirectory(entry))) {
@@ -64,6 +67,10 @@ public class MavenPluginUtil extends AbstractLogEnabled {
                                         groupDir.getFileName().toString(),
                                         artifactDir.getFileName().toString(), null,
                                         "zip", versionDir.getFileName().toString(), null, zippedFP.toFile());
+                                Path target = Paths.get(project.getBuild().getDirectory()).resolve(project.getBuild().getFinalName() + ".jar");
+                                IoUtils.copy(zippedFP, target);
+                                target = Paths.get(project.getBuild().getDirectory()).resolve(project.getBuild().getFinalName() + ".zip");
+                                IoUtils.copy(zippedFP, target);
                                 installReq.addArtifact(artifact);
                                 if (pomFile != null && Files.exists(pomFile.toPath())) {
                                     Artifact pomArtifact = new SubArtifact(artifact, "", "pom");

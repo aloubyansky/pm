@@ -44,16 +44,18 @@ public class FeaturePackInstaller {
     private final List<ConfigurationId> configs;
     private final String featurePackGav;
     private final boolean inheritPackages;
+    private final boolean inheritConfigs;
     private final List<String> includedPackages;
     private final List<String> excludedPackages;
     private final Map<String, String> options;
 
     public FeaturePackInstaller(Path repoHome, Path installationDir, Path configuration,
-            List<ConfigurationId> configs, String featurePackGav, boolean inheritPackages,
+            List<ConfigurationId> configs, String featurePackGav, boolean inheritConfigs, boolean inheritPackages,
             List<String> includedPackages, List<String> excludedPackages, Map<String, String> options) {
         this.repoHome = repoHome;
         this.installationDir = installationDir;
         this.configuration = configuration;
+        this.inheritConfigs = inheritConfigs;
         this.inheritPackages = inheritPackages;
         this.featurePackGav = featurePackGav;
         if (configs == null) {
@@ -92,12 +94,15 @@ public class FeaturePackInstaller {
             }
             FeaturePackConfig.Builder fpConfigBuilder = FeaturePackConfig.builder(ArtifactCoords.newGav(featurePackGav))
                     .setInheritPackages(inheritPackages)
-                    .setInheritConfigs(false);
+                    .setInheritConfigs(inheritConfigs);
             if(configs != null && ! configs.isEmpty()) {
                 for(ConfigurationId configId : configs) {
-                    fpConfigBuilder.includeDefaultConfig(configId.getId());
+                    if(configId.isModelOnly()) {
+                        fpConfigBuilder.includeConfigModel(configId.getId().getModel());
+                    } else {
+                        fpConfigBuilder.includeDefaultConfig(configId.getId());
+                    }
                 }
-                fpConfigBuilder.setInheritConfigs(false);
             }
             if (config != null) {
                 fpConfigBuilder.addConfig(config);
