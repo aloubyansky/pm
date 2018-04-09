@@ -35,9 +35,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -54,9 +54,6 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.shared.artifact.resolve.ArtifactResolver;
 import org.apache.maven.shared.artifact.resolve.ArtifactResolverException;
 import org.apache.maven.shared.artifact.resolve.ArtifactResult;
-import org.apache.maven.shared.dependencies.DefaultDependableCoordinate;
-import org.apache.maven.shared.dependencies.resolve.DependencyResolver;
-import org.apache.maven.shared.dependencies.resolve.DependencyResolverException;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
@@ -65,6 +62,16 @@ import org.codehaus.plexus.components.io.fileselectors.IncludeExcludeFileSelecto
 import org.codehaus.plexus.util.StringUtils;
 import org.jboss.galleon.ProvisioningException;
 import org.jboss.galleon.util.IoUtils;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.artifact.DefaultArtifactType;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionException;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 
 /**
  *
@@ -103,7 +110,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
     private ArchiverManager archiverManager;
 
     @Component
-    private DependencyResolver dependencyResolver;
+    private RepositorySystem repoSystem;
 
     @Component
     private ArtifactResolver artifactResolver;
@@ -130,7 +137,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
             if(specsTotal >= 0) {
                 final long totalTime = System.currentTimeMillis() - startTime;
                 final long secs = totalTime / 1000;
-                getLog().info("Generated " + specsTotal + " feature specs in " + secs + "." + (totalTime - secs * 1000) + " secs");
+                debug("Generated " + specsTotal + " feature specs in " + secs + "." + (totalTime - secs * 1000) + " secs");
             }
         }
     }
@@ -167,7 +174,11 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         final List<URL> buildCp = new ArrayList<>(buildArtifacts.size());
         buildCp.add(itemFile.toURI().toURL());
         for(Artifact artifact : buildArtifacts.values()) {
-            buildCp.add(artifact.getFile().toURI().toURL());
+            if(artifact.getFile() == null) {
+                 buildCp.add(findArtifact(artifact).getFile().toURI().toURL());
+            } else {
+                buildCp.add(artifact.getFile().toURI().toURL());
+            }
         }
 
         try {
@@ -225,10 +236,10 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
             throws MojoExecutionException, IOException {
         Map<String, Artifact> artifacts = new HashMap<>();
         for (Artifact artifact : project.getArtifacts()) {
-            artifacts.put(getArtifactKey(artifact), artifact);
+            registerArtifact(artifacts, artifact);
         }
         for (Artifact featurePackArtifact : featurePackArtifacts) {
-            collectDepArtifacts(artifacts, featurePackArtifact);
+            prepareArtifacts(artifacts, featurePackArtifact);
         }
         if (externalArtifacts == null || externalArtifacts.isEmpty()) {
             return artifacts;
@@ -243,7 +254,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
                 getLog().warn("No artifact was found for " + fp);
                 continue;
             }
-            collectDepArtifacts(artifacts, fpArtifact);
+            prepareArtifacts(artifacts, fpArtifact);
             File archive = fpArtifact.getFile();
             Path target = tmpModules.resolve(MODULES).resolve(fp.getToLocation());
             Files.createDirectories(target);
@@ -267,11 +278,10 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         return artifacts;
     }
 
-    private void collectDepArtifacts(Map<String, Artifact> artifacts, Artifact artifact) throws MojoExecutionException {
-        for (ArtifactResult result : resolveDependencies(artifact)) {
-            Artifact dep = result.getArtifact();
-            artifacts.put(getArtifactKey(dep), dep);
-        }
+    private void registerArtifact(Map<String, Artifact> artifacts , Artifact artifact) {
+        String key = getArtifactKey(artifact);
+        debug("Registering " + artifact.toString() + " for key " + key);
+        artifacts.putIfAbsent(key, artifact);
     }
 
     private Set<String> getInheritedFeatures(Path tmpModules, List<Artifact> featurePackArtifacts)
@@ -322,7 +332,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
     }
 
     private void copyJbossModule(Path wildfly) throws IOException, MojoExecutionException {
-        for (Dependency dep : project.getDependencyManagement().getDependencies()) {
+        for (org.apache.maven.model.Dependency dep : project.getDependencyManagement().getDependencies()) {
             debug("Dependency found %s", dep);
             if ("org.jboss.modules".equals(dep.getGroupId()) && "jboss-modules".equals(dep.getArtifactId())) {
                 ArtifactItem jbossModule = new ArtifactItem();
@@ -391,6 +401,21 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         }
     }
 
+    private Artifact findArtifact(Artifact featurePack) throws MojoExecutionException {
+        try {
+            ProjectBuildingRequest buildingRequest
+                    = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
+            buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
+            ArtifactResult result = artifactResolver.resolveArtifact(buildingRequest, featurePack);
+            if (result != null) {
+                return result.getArtifact();
+            }
+            return featurePack;
+        } catch (ArtifactResolverException e) {
+            throw new MojoExecutionException("Couldn't resolve artifact: " + e.getMessage(), e);
+        }
+    }
+
     private String getArtifactKey(Artifact artifact) {
         final StringBuilder buf = new StringBuilder(artifact.getGroupId()).append(':').
                 append(artifact.getArtifactId());
@@ -401,7 +426,6 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         return buf.toString();
     }
 
-
     private void resolveVersion(ArtifactItem artifact) {
         if(artifact.getVersion() == null) {
             Artifact managedArtifact = this.project.getManagedVersionMap().get(artifact.getGroupId() + ':' + artifact.getArtifactId() + ':' + artifact.getType());
@@ -411,24 +435,42 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         }
     }
 
-    private Iterable<ArtifactResult> resolveDependencies(Artifact artifact) throws MojoExecutionException {
+    private void prepareArtifacts(Map<String, Artifact> artifacts, Artifact artifact) throws MojoExecutionException {
         try {
-            DefaultDependableCoordinate coordinate = new DefaultDependableCoordinate();
-            coordinate.setGroupId(artifact.getGroupId());
-            coordinate.setArtifactId(artifact.getArtifactId());
-            coordinate.setVersion(artifact.getVersion());
-            coordinate.setType(artifact.getType());
-            coordinate.setClassifier(artifact.getClassifier());
-            ProjectBuildingRequest buildingRequest
-                    = new DefaultProjectBuildingRequest(session.getProjectBuildingRequest());
-
-            buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
-            debug("Resolving %s with transitive dependencies", coordinate);
-            buildingRequest.setProject(project);
-            return dependencyResolver.resolveDependencies(buildingRequest, coordinate, null);
-        } catch (DependencyResolverException e) {
-            throw new MojoExecutionException("Couldn't download artifact: " + e.getMessage(), e);
+            CollectRequest request = new CollectRequest();
+            request.setRepositories(project.getRemoteProjectRepositories());
+            org.eclipse.aether.artifact.Artifact root = new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), null, artifact.getVersion(), new DefaultArtifactType(artifact.getType()));
+            Dependency dep = new Dependency(root, null);
+            request.setRoot(dep);
+            CollectResult result = this.repoSystem.collectDependencies(session.getRepositorySession(), request);
+            resolveDependency(result.getRoot(), artifacts);
+        } catch(DependencyCollectionException e) {
+            getLog().error("Couldn't download artifact: " + e.getMessage(), e);
         }
+    }
+
+    private void resolveDependency(DependencyNode node, Map<String, Artifact> artifacts ) {
+        org.eclipse.aether.artifact.Artifact aetherArtifact = getArtifact(node.getArtifact());
+        if(aetherArtifact == null) {
+            return;
+        }
+        registerArtifact(artifacts, RepositoryUtils.toArtifact(aetherArtifact));
+        for(DependencyNode child : node.getChildren()) {
+            resolveDependency(child, artifacts);
+        }
+    }
+
+    private org.eclipse.aether.artifact.Artifact getArtifact(org.eclipse.aether.artifact.Artifact artifact) {
+        try {
+            ArtifactRequest request = new ArtifactRequest();
+            request.setRepositories(project.getRemoteProjectRepositories());
+            request.setArtifact(artifact);
+            org.eclipse.aether.resolution.ArtifactResult result = this.repoSystem.resolveArtifact(session.getRepositorySession(), request);
+            return result.getArtifact();
+        } catch(ArtifactResolutionException e) {
+            getLog().error("Couldn't download artifact: " + e.getMessage(), e);
+        }
+        return null;
     }
 
     private void debug(String format, Object... args) {

@@ -84,7 +84,7 @@ public class ModuleXmlVersionResolver {
             }
 
             private void debug(Log log, String format, Object... args) {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug(String.format(format, args));
                 }
             }
@@ -191,7 +191,7 @@ public class ModuleXmlVersionResolver {
                 if (artifactCoords != null) {
                     Artifact artifact = artifacts.get(artifactCoords);
                     if (artifact == null) {
-                        log.warn("Couldn't find an artifact in the dependencies to reolve " + artifactCoords);
+                        log.warn("Couldn't find an artifact in the dependencies to resolve " + artifactCoords);
                         attributes.add(attribute);
                     } else {
                         StringJoiner joiner = new StringJoiner(":");
@@ -222,7 +222,7 @@ public class ModuleXmlVersionResolver {
                 String artifactName = attribute.getValue();
                 String artifactCoords = getArtifactCoordinates(artifactName);
                 if (artifactCoords != null) {
-                    attributes.add(eventFactory.createAttribute(attribute.getName(), artifacts.get(artifactCoords).getVersion()));
+                    attributes.add(eventFactory.createAttribute("version", artifacts.get(artifactCoords).getVersion()));
                 } else {
                     attributes.add(attribute);
                 }
