@@ -67,9 +67,7 @@ public class MavenPluginUtil extends AbstractLogEnabled {
                                         groupDir.getFileName().toString(),
                                         artifactDir.getFileName().toString(), null,
                                         "zip", versionDir.getFileName().toString(), null, zippedFP.toFile());
-                                Path target = Paths.get(project.getBuild().getDirectory()).resolve(project.getBuild().getFinalName() + ".jar");
-                                IoUtils.copy(zippedFP, target);
-                                target = Paths.get(project.getBuild().getDirectory()).resolve(project.getBuild().getFinalName() + ".zip");
+                                Path target = Paths.get(project.getBuild().getDirectory()).resolve(project.getBuild().getFinalName() + ".zip");
                                 IoUtils.copy(zippedFP, target);
                                 installReq.addArtifact(artifact);
                                 if (pomFile != null && Files.exists(pomFile.toPath())) {
