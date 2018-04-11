@@ -140,6 +140,12 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
     @Parameter(alias="release-name", defaultValue = "${product.release.name}", required=true)
     private String releaseName;
 
+    /**
+     * The release name
+     */
+    @Parameter(alias="feature-pack-name", defaultValue = "${project.artifactId}", required=false)
+    private String featurePackName;
+
     @Inject
     private MavenPluginUtil mavenPluginUtil;
 
@@ -186,13 +192,12 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
         final Path workDir = Paths.get(buildName, WfConstants.LAYOUT);
 //        getLog().info("WfFeaturePackBuildMojo.execute " + workDir);
         IoUtils.recursiveDelete(workDir);
-        final String fpArtifactId = project.getArtifactId() + "-new";
-        final Path fpDir = workDir.resolve(project.getGroupId()).resolve(fpArtifactId).resolve(project.getVersion());
+        final Path fpDir = workDir.resolve(project.getGroupId()).resolve(featurePackName).resolve(project.getVersion());
         final Path fpPackagesDir = fpDir.resolve(Constants.PACKAGES);
 
         // feature-pack builder
         final FeaturePackLayout.Builder fpBuilder = FeaturePackLayout.builder(
-                FeaturePackSpec.builder(ArtifactCoords.newGav(project.getGroupId(), fpArtifactId, project.getVersion())));
+                FeaturePackSpec.builder(ArtifactCoords.newGav(project.getGroupId(), featurePackName, project.getVersion())));
 
         // feature-pack build config
         try {
@@ -303,7 +308,7 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
         }
 
         try {
-            repoSystem.install(repoSession, mavenPluginUtil.getInstallLayoutRequest(workDir, project.getFile()));
+            repoSystem.install(repoSession, mavenPluginUtil.getInstallLayoutRequest(workDir, project));
         } catch (InstallationException | IOException e) {
             throw new MojoExecutionException(FpMavenErrors.featurePackInstallation(), e);
         }
@@ -464,7 +469,6 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
             if (gavStr == null) {
                 throw new MojoExecutionException("Failed resolve artifact version for " + depStr);
             }
-            gavStr = gavStr.replace(depStr, depStr + "-new");
             final ArtifactCoords.Gav depGav = ArtifactCoords.newGav(gavStr);
             final FeaturePackConfig.Builder depBuilder = FeaturePackConfig.builder(depGav);
             depBuilder.setInheritPackages(depConfig.isInheritPackages());

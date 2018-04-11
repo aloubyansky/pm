@@ -424,6 +424,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
 
             buildingRequest.setRemoteRepositories(project.getRemoteArtifactRepositories());
             debug("Resolving %s with transitive dependencies", coordinate);
+            buildingRequest.setProject(project);
             return dependencyResolver.resolveDependencies(buildingRequest, coordinate, null);
         } catch (DependencyResolverException e) {
             throw new MojoExecutionException("Couldn't download artifact: " + e.getMessage(), e);
