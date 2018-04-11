@@ -522,8 +522,6 @@ public class WfInstallPlugin extends ProvisioningPluginWithOptions implements In
         for(DeletePath deletePath : pathsToDelete) {
             final Path path = runtime.getStagedDir().resolve(deletePath.getPath());
             if (!Files.exists(path)) {
-                System.out.println("  does not exist " + path);
-//                throw new ProvisioningException(Errors.pathDoesNotExist(path));
                 continue;
             }
             if(deletePath.isRecursive()) {
