@@ -517,7 +517,7 @@ public class ProvisioningManager {
         }
     }
 
-    private ProvisioningConfig readProvisioningConfig(Path path) throws ProvisioningException {
+    public ProvisioningConfig readProvisioningConfig(Path path) throws ProvisioningException {
         if (!Files.exists(path)) {
             return null;
         }

@@ -22,4 +22,6 @@ include::provisioning-content/index.adoc[]
 
 include::provisioned-config/index.adoc[]
 
+include::tool/index.adoc[]
+
 include::wildfly/index.adoc[]

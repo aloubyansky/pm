@@ -82,12 +82,18 @@ public class ConfigModel extends FeatureGroupSupport {
     final ConfigId id;
     final Map<String, String> props;
     final Map<String, ConfigId> configDeps;
+    private final Builder builder;
 
     protected ConfigModel(Builder builder) throws ProvisioningDescriptionException {
         super(builder);
         this.id = new ConfigId(builder.model, builder.name);
         this.props = PmCollections.unmodifiable(builder.props);
         this.configDeps = PmCollections.unmodifiable(builder.configDeps);
+        this.builder = builder;
+    }
+
+    public Builder getBuilder() {
+        return builder;
     }
 
     public ConfigId getId() {

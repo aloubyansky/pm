@@ -25,11 +25,12 @@ import org.aesh.command.CommandDefinition;
 import org.aesh.command.option.Option;
 import org.aesh.io.Resource;
 import org.jboss.provisioning.ProvisioningException;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 /**
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-@CommandDefinition(name="changes", description="Saves current provisioned configuration changes into the specified directory.")
+@CommandDefinition(name = "changes", description = "Saves current provisioned configuration changes into the specified directory.", activator = NoStateCommandActivator.class)
 public class ChangesCommand extends FromInstallationCommand {
 
     @Option(name = "username", required = true,

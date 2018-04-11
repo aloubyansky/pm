@@ -59,6 +59,40 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B removeConfig(ConfigId id) throws ProvisioningDescriptionException {
+        int index = getDefinedConfigIndex(id);
+        definedConfigs = PmCollections.remove(definedConfigs, index);
+        // reset flag
+        hasModelOnlyConfigs = false;
+        for (ConfigModel cm : definedConfigs) {
+            hasModelOnlyConfigs |= cm.id.isModelOnly();
+        }
+        return (B) this;
+    }
+
+    public int getDefinedConfigIndex(ConfigId id) throws ProvisioningDescriptionException {
+        int index = -1;
+        for (int i = 0; i < definedConfigs.size(); i++) {
+            ConfigModel cm = definedConfigs.get(i);
+            if (cm.getId().equals(id)) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            throw new ProvisioningDescriptionException("Config " + id + " is not added");
+        }
+        return index;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B addConfig(int index, ConfigModel config) throws ProvisioningDescriptionException {
+        definedConfigs = PmCollections.add(definedConfigs, index, config);
+        this.hasModelOnlyConfigs |= config.id.isModelOnly();
+        return (B) this;
+    }
+
     public B excludeConfigModel(String model) throws ProvisioningDescriptionException {
         return excludeConfigModel(model, true);
     }
@@ -94,8 +128,26 @@ public abstract class ConfigCustomizationsBuilder<B extends ConfigCustomizations
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B removeIncludedDefaultConfig(ConfigId configId) throws ProvisioningDescriptionException {
+        if (!includedConfigs.contains(configId)) {
+            throw new ProvisioningDescriptionException("Config model with id " + configId + " is not included into the configuration");
+        }
+        includedConfigs = PmCollections.remove(includedConfigs, configId);
+        return (B) this;
+    }
+
     public B excludeDefaultConfig(String model, String name) {
         return excludeDefaultConfig(new ConfigId(model, name));
+    }
+
+    @SuppressWarnings("unchecked")
+    public B removeExcludedDefaultConfig(ConfigId configId) throws ProvisioningDescriptionException {
+        if (!excludedConfigs.contains(configId)) {
+            throw new ProvisioningDescriptionException("Config model with id " + configId + " is not excluded from the configuration");
+        }
+        excludedConfigs = PmCollections.remove(excludedConfigs, configId);
+        return (B) this;
     }
 
     @SuppressWarnings("unchecked")

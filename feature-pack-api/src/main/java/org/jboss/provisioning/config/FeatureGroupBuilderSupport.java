@@ -20,6 +20,7 @@ package org.jboss.provisioning.config;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jboss.provisioning.ProvisioningDescriptionException;
@@ -190,12 +191,50 @@ public abstract class FeatureGroupBuilderSupport<B extends FeatureGroupBuilderSu
         return (B) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public B removeExcludedFeature(FeatureId featureId) throws ProvisioningDescriptionException {
+        excludedFeatures = PmCollections.remove(excludedFeatures, featureId);
+        return (B) this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public B addConfigItem(ConfigItem item) {
         items = PmCollections.add(items, item);
         return (B) this;
     }
+
+    @SuppressWarnings("unchecked")
+    public B removeFeature(FeatureId id) throws ProvisioningDescriptionException {
+        int index = -1;
+        // Although that is a list, we have a single ConfigModel for a given ConfigId
+        for (int i = 0; i < items.size(); i++) {
+            ConfigItem ci = items.get(i);
+            if (ci instanceof FeatureConfig) {
+                FeatureConfig conf = (FeatureConfig) ci;
+                if (conf.getSpecId().equals(id.getSpec())) {
+                    boolean eq = true;
+                    for (Entry<String, String> entry : id.getParams().entrySet()) {
+                        String val = conf.getParam(entry.getKey());
+                        if (val == null || !val.equals(entry.getValue())) {
+                            eq = false;
+                            break;
+                        }
+                    }
+                    if (eq) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+        }
+        if (index == -1) {
+            throw new ProvisioningDescriptionException("Feature " + id + " is not added");
+        }
+        items = PmCollections.remove(items, index);
+        return (B) this;
+    }
+
 
     private FeatureGroup.Builder getExternalFgConfig(String origin) {
         FeatureGroup.Builder fgBuilder = externalFgConfigs.get(origin);

@@ -62,6 +62,14 @@ public class FeaturePackConfig extends ConfigCustomizations {
             return this;
         }
 
+        public Builder removeExcludedPackage(String pkg) throws ProvisioningDescriptionException {
+            if (!excludedPackages.contains(pkg)) {
+                throw new ProvisioningDescriptionException("Package " + pkg + " is not excluded from the configuration");
+            }
+            excludedPackages = PmCollections.remove(excludedPackages, pkg);
+            return this;
+        }
+
         public Builder excludeAllPackages(Collection<String> packageNames) throws ProvisioningDescriptionException {
             for(String packageName : packageNames) {
                 excludePackage(packageName);
@@ -78,6 +86,14 @@ public class FeaturePackConfig extends ConfigCustomizations {
 
         public Builder includePackage(String packageName) throws ProvisioningDescriptionException {
             return includePackage(PackageConfig.forName(packageName));
+        }
+
+        public Builder removeIncludedPackage(String pkg) throws ProvisioningDescriptionException {
+            if (!includedPackages.containsKey(pkg)) {
+                throw new ProvisioningDescriptionException("Package " + pkg + " is not included into the configuration");
+            }
+            includedPackages = PmCollections.remove(includedPackages, pkg);
+            return this;
         }
 
         private Builder includePackage(PackageConfig packageConfig) throws ProvisioningDescriptionException {
@@ -117,6 +133,7 @@ public class FeaturePackConfig extends ConfigCustomizations {
     protected final boolean inheritPackages;
     protected final Set<String> excludedPackages;
     protected final Map<String, PackageConfig> includedPackages;
+    private final Builder builder;
 
     protected FeaturePackConfig(Builder builder) {
         super(builder);
@@ -125,6 +142,11 @@ public class FeaturePackConfig extends ConfigCustomizations {
         this.inheritPackages = builder.inheritPackages;
         this.excludedPackages = PmCollections.unmodifiable(builder.excludedPackages);
         this.includedPackages = PmCollections.unmodifiable(builder.includedPackages);
+        this.builder = builder;
+    }
+
+    public Builder getBuilder() {
+        return builder;
     }
 
     public ArtifactCoords.Gav getGav() {

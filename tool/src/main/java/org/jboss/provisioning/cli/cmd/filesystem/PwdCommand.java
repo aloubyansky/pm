@@ -14,33 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.provisioning.cli;
+package org.jboss.provisioning.cli.cmd.filesystem;
 
-import java.util.List;
 import org.aesh.command.CommandDefinition;
-import org.aesh.command.option.Argument;
-import org.aesh.io.Resource;
-import org.aesh.readline.AeshContext;
+import org.jboss.provisioning.cli.CommandExecutionException;
+import org.jboss.provisioning.cli.PmCommandInvocation;
+import org.jboss.provisioning.cli.PmSessionCommand;
 
-/**
- *
- * @author Alexey Loubyansky
- */
-@CommandDefinition(name="cd", description="Changes the current work dir to the specified location")
-public class CdCommand extends PmSessionCommand {
-
-    @Argument
-    private Resource argument;
+@CommandDefinition(name = "pwd", description = "show the current [dir] or [fp]")
+public class PwdCommand extends PmSessionCommand {
 
     @Override
     protected void runCommand(PmCommandInvocation session) throws CommandExecutionException {
-        final AeshContext aeshCtx = session.getAeshContext();
-        if (argument != null) {
-            final List<Resource> files = argument.resolve(aeshCtx.getCurrentWorkingDirectory());
-            if (files.get(0).isDirectory()) {
-                aeshCtx.setCurrentWorkingDirectory(files.get(0));
-            }
+        String p = session.getPmSession().getCurrentPath();
+        if (p == null) {
+            session.println(session.getAeshContext().getCurrentWorkingDirectory().getAbsolutePath());
+        } else {
+            session.println(p);
         }
-        session.setPrompt(PmSession.buildPrompt(aeshCtx));
     }
 }

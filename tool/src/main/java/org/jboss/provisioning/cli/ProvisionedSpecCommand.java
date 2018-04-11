@@ -27,12 +27,13 @@ import org.aesh.command.container.CommandContainer;
 import org.aesh.command.parser.CommandLineParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.provisioning.cli.cmd.plugin.DiffCommand;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@GroupCommandDefinition(description = "", name = "state")
+@GroupCommandDefinition(description = "", name = "spec-state", activator = NoStateCommandActivator.class)
 public class ProvisionedSpecCommand implements GroupCommand<PmCommandInvocation, Command> {
 
     private final DiffCommand diffCommand;

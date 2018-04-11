@@ -21,12 +21,13 @@ import org.aesh.command.CommandException;
 import org.aesh.command.CommandResult;
 import org.aesh.command.GroupCommandDefinition;
 import org.aesh.command.invocation.CommandInvocation;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 /**
  *
  * @author jdenise@redhat.com
  */
-@GroupCommandDefinition(description = "", name = "universe", groupCommands = {UniverseListCommand.class})
+@GroupCommandDefinition(description = "", name = "universe", groupCommands = {UniverseListCommand.class}, activator = NoStateCommandActivator.class)
 public class UniverseCommand implements Command<CommandInvocation> {
 
     @Override

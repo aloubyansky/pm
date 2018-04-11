@@ -19,6 +19,7 @@ package org.jboss.provisioning.config;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.ArtifactCoords.Ga;
@@ -73,7 +74,7 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
             fpGaToOrigin = Collections.emptyMap();
             return (B) this;
         }
-        fpDeps.remove(ga);
+        fpDeps = PmCollections.remove(fpDeps, ga);
         if(!fpGaToOrigin.isEmpty()) {
             final String origin = fpGaToOrigin.get(ga);
             if(origin != null) {
@@ -85,6 +86,48 @@ public abstract class FeaturePackDepsConfigBuilder<B extends FeaturePackDepsConf
                     fpGaToOrigin.remove(ga);
                 }
             }
+        }
+        return (B) this;
+    }
+
+    public int getFeaturePackDepIndex(ArtifactCoords.Gav gav) throws ProvisioningException {
+        final ArtifactCoords.Ga ga = gav.toGa();
+        final FeaturePackConfig fpDep = fpDeps.get(ga);
+        if (fpDep == null) {
+            throw new ProvisioningException(Errors.unknownFeaturePack(gav));
+        }
+        if (!fpDep.getGav().equals(gav)) {
+            throw new ProvisioningException(Errors.unknownFeaturePack(gav));
+        }
+        int i = 0;
+        for (ArtifactCoords.Ga g : fpDeps.keySet()) {
+            if (g.equals(ga)) {
+                break;
+            }
+            i += 1;
+        }
+        return i;
+    }
+
+    @SuppressWarnings("unchecked")
+    public B addFeaturePackDep(int index, FeaturePackConfig dependency) throws ProvisioningDescriptionException {
+        if (index >= fpDeps.size()) {
+            FeaturePackDepsConfigBuilder.this.addFeaturePackDep(dependency);
+        } else {
+            if (fpDeps.containsKey(dependency.getGav().toGa())) {
+                throw new ProvisioningDescriptionException("Feature-pack already added " + dependency.getGav().toGa());
+            }
+            // reconstruct the linkedMap.
+            Map<ArtifactCoords.Ga, FeaturePackConfig> tmp = Collections.emptyMap();
+            int i = 0;
+            for (Entry<ArtifactCoords.Ga, FeaturePackConfig> entry : fpDeps.entrySet()) {
+                if (i == index) {
+                    tmp = PmCollections.putLinked(tmp, dependency.getGav().toGa(), dependency);
+                }
+                tmp = PmCollections.putLinked(tmp, entry.getKey(), entry.getValue());
+                i += 1;
+            }
+            fpDeps = tmp;
         }
         return (B) this;
     }

@@ -19,28 +19,89 @@ package org.jboss.provisioning.cli;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.aesh.command.activator.CommandActivator;
+import org.aesh.command.activator.CommandActivatorProvider;
+import org.aesh.command.activator.OptionActivator;
+import org.aesh.command.activator.OptionActivatorProvider;
 import org.aesh.command.completer.CompleterInvocation;
 import org.aesh.command.completer.CompleterInvocationProvider;
 import org.aesh.command.invocation.CommandInvocation;
 import org.aesh.command.invocation.CommandInvocationProvider;
 import org.aesh.readline.AeshContext;
 import org.aesh.readline.Prompt;
+import org.aesh.utils.Config;
+import org.jboss.provisioning.ArtifactRepositoryManager;
+import org.jboss.provisioning.cli.model.FeatureContainer;
+import org.jboss.provisioning.cli.model.state.State;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-public class PmSession implements CommandInvocationProvider<PmCommandInvocation>, CompleterInvocationProvider<PmCompleterInvocation> {
+public class PmSession implements CommandInvocationProvider<PmCommandInvocation>, CompleterInvocationProvider<PmCompleterInvocation>,
+        CommandActivatorProvider, OptionActivatorProvider<OptionActivator> {
 
     private PrintStream out;
     private PrintStream err;
     private final Configuration config;
     private final Universes universes;
 
+    private State state;
+    private FeatureContainer exploredContainer;
+    private String currentPath;
     public PmSession(Configuration config) throws Exception {
         this.config = config;
         //Build the universes
         this.universes = Universes.buildUniverses(MavenArtifactRepositoryManager.getInstance(), config.getUniversesLocations());
+    }
+
+    public void setState(State session) {
+        this.state = session;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setExploredContainer(FeatureContainer exploredContainer) {
+        this.exploredContainer = exploredContainer;
+    }
+
+    public FeatureContainer getExploredContainer() {
+        return exploredContainer;
+    }
+
+    public FeatureContainer getContainer() {
+        if (state != null) {
+            return state.getContainer();
+        }
+        if (exploredContainer != null) {
+            return exploredContainer;
+        }
+        return null;
+    }
+
+    public String getCurrentPath() {
+        if (state != null) {
+            return state.getPath();
+        }
+        if (currentPath != null) {
+            return currentPath;
+        }
+        return null;
+    }
+
+    public void setCurrentPath(String currentPath) {
+        if (state != null) {
+            state.setPath(currentPath);
+        }
+        if (currentPath != null) {
+            this.currentPath = currentPath;
+        }
+    }
+
+    public void println(String txt) {
+        out.print(txt + Config.getLineSeparator());
     }
 
     public Configuration getPmConfiguration() {
@@ -49,6 +110,10 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
 
     public Universes getUniverses() {
         return universes;
+    }
+
+    public ArtifactRepositoryManager getArtifactResolver() {
+        return MavenArtifactRepositoryManager.getInstance();
     }
 
     // TO REMOVE when we have an universe for sure.
@@ -61,9 +126,13 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
         return false;
     }
 
-    static Prompt buildPrompt(AeshContext aeshCtx) {
+    public static Prompt buildPrompt(AeshContext aeshCtx) {
+        return buildPrompt(aeshCtx.getCurrentWorkingDirectory().getName());
+    }
+
+    public static Prompt buildPrompt(String name) {
         return new Prompt(new StringBuilder().append('[')
-                .append(aeshCtx.getCurrentWorkingDirectory().getName())
+                .append(name)
                 .append("]$ ").toString());
     }
 
@@ -87,5 +156,21 @@ public class PmSession implements CommandInvocationProvider<PmCommandInvocation>
     @Override
     public PmCompleterInvocation enhanceCompleterInvocation(CompleterInvocation completerInvocation) {
         return new PmCompleterInvocation(completerInvocation, this);
+    }
+
+    @Override
+    public CommandActivator enhanceCommandActivator(CommandActivator ca) {
+        if (ca instanceof PmCommandActivator) {
+            ((PmCommandActivator) ca).setPmSession(this);
+        }
+        return ca;
+    }
+
+    @Override
+    public OptionActivator enhanceOptionActivator(OptionActivator oa) {
+        if (oa instanceof PmOptionActivator) {
+            ((PmOptionActivator) oa).setPmSession(this);
+        }
+        return oa;
     }
 }

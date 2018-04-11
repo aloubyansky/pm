@@ -30,8 +30,10 @@ import org.aesh.command.parser.OptionParserException;
 import org.aesh.readline.AeshContext;
 import org.jboss.provisioning.ProvisioningException;
 import org.jboss.provisioning.cli.CommandExecutionException;
+import org.jboss.provisioning.cli.PmCommandActivator;
 import org.jboss.provisioning.cli.PmCommandInvocation;
 import org.jboss.provisioning.cli.PmSession;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.provisioning.plugin.DiffPlugin;
 import org.jboss.provisioning.plugin.PluginOption;
 import org.jboss.provisioning.runtime.ProvisioningRuntime;
@@ -52,7 +54,7 @@ public class DiffCommand extends AbstractPluginsCommand {
     protected void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
             Path targetDirectory = toPath((String) getValue(TARGET_NAME), session.getAeshContext());
-            getManager(session).exportConfigurationChanges(targetDirectory, getGav(session.getPmSession(), false), options);
+            getManager(session).exportConfigurationChanges(targetDirectory, getGav(session.getPmSession()), options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }
@@ -112,5 +114,10 @@ public class DiffCommand extends AbstractPluginsCommand {
     private Path toPath(String value, AeshContext context) {
         Path workDir = PmSession.getWorkDir(context);
         return value == null ? PmSession.getWorkDir(context) : workDir.resolve(value);
+    }
+
+    @Override
+    protected PmCommandActivator getActivator() {
+        return new NoStateCommandActivator();
     }
 }

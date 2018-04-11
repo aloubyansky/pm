@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.provisioning.cli;
+package org.jboss.provisioning.cli.cmd.state;
 
 import org.aesh.command.activator.OptionActivator;
 import org.aesh.command.impl.internal.ParsedCommand;
@@ -23,16 +23,17 @@ import org.aesh.command.option.Argument;
 import org.aesh.command.option.Option;
 import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.ArtifactException;
+import org.jboss.provisioning.cli.CommandExecutionException;
+import org.jboss.provisioning.cli.GavCompleter;
+import org.jboss.provisioning.cli.PmSession;
+import static org.jboss.provisioning.cli.ProvisioningFeaturePackCommand.FP_OPTION_NAME;
+import org.jboss.provisioning.cli.StreamCompleter;
 
 /**
- * A base class for provisioning commands that target a feature-pack. For now
- * feature-pack can be identified by a stream name or FP coordinates.
  *
  * @author jdenise@redhat.com
  */
-public abstract class FeaturePackCommand extends ProvisioningCommand {
-
-    private static final String FP_OPTION_NAME = "fp";
+public abstract class AbstractFPProvisioningCommand extends AbstractStateCommand {
 
     public static class FPActivator implements OptionActivator {
 
@@ -58,7 +59,7 @@ public abstract class FeaturePackCommand extends ProvisioningCommand {
     @Option(name = FP_OPTION_NAME, completer = GavCompleter.class, activator = FPActivator.class)
     protected String fpCoords;
 
-    protected ArtifactCoords.Gav getGav(PmSession session) throws CommandExecutionException {
+    public ArtifactCoords.Gav getGav(PmSession session) throws CommandExecutionException {
         if (fpCoords == null && streamName == null) {
             throw new CommandExecutionException("Stream name or feature-pack coordinates must be set");
         }
@@ -77,5 +78,13 @@ public abstract class FeaturePackCommand extends ProvisioningCommand {
             coords = fpCoords;
         }
         return ArtifactCoords.newGav(coords);
+    }
+
+    public String getName() {
+        if (streamName == null) {
+            return fpCoords;
+        } else {
+            return streamName;
+        }
     }
 }

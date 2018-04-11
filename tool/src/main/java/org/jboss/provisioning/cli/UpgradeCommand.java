@@ -24,11 +24,12 @@ import org.aesh.command.option.Option;
 
 import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.ProvisioningException;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 /**
  * @author Emmanuel Hugonnet (c) 2017 Red Hat, inc.
  */
-@CommandDefinition(name="upgrade", description="Saves current provisioned configuration into the specified file.")
+@CommandDefinition(name = "upgrade", description = "Saves current provisioned configuration into the specified file.", activator = NoStateCommandActivator.class)
 public class UpgradeCommand extends FromInstallationCommand {
 
     @Option(name = "username", required = true,

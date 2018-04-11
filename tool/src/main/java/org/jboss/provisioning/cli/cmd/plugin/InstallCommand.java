@@ -31,8 +31,10 @@ import org.aesh.readline.AeshContext;
 import org.jboss.provisioning.ProvisioningException;
 import org.jboss.provisioning.ProvisioningManager;
 import org.jboss.provisioning.cli.CommandExecutionException;
+import org.jboss.provisioning.cli.PmCommandActivator;
 import org.jboss.provisioning.cli.PmCommandInvocation;
 import org.jboss.provisioning.cli.PmSession;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 import org.jboss.provisioning.plugin.InstallPlugin;
 import org.jboss.provisioning.plugin.PluginOption;
 import org.jboss.provisioning.runtime.ProvisioningRuntime;
@@ -53,7 +55,7 @@ public class InstallCommand extends AbstractPluginsCommand {
     protected void runCommand(PmCommandInvocation session, Map<String, String> options) throws CommandExecutionException {
         try {
             final ProvisioningManager manager = getManager(session);
-            manager.install(getGav(session.getPmSession(), false), options);
+            manager.install(getGav(session.getPmSession()), options);
         } catch (Exception ex) {
             throw new CommandExecutionException(ex);
         }
@@ -101,5 +103,10 @@ public class InstallCommand extends AbstractPluginsCommand {
         String targetDirArg = (String) getValue(DIR_NAME);
         Path workDir = PmSession.getWorkDir(context);
         return targetDirArg == null ? PmSession.getWorkDir(context) : workDir.resolve(targetDirArg);
+    }
+
+    @Override
+    protected PmCommandActivator getActivator() {
+        return new NoStateCommandActivator();
     }
 }

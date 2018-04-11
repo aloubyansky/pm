@@ -21,12 +21,13 @@ import org.aesh.command.option.Argument;
 import org.jboss.provisioning.ArtifactCoords;
 import org.jboss.provisioning.ProvisioningException;
 import org.jboss.provisioning.ProvisioningManager;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@CommandDefinition(name = "uninstall", description = "Uninstalls specified feature-pack")
+@CommandDefinition(name = "uninstall", description = "Uninstalls specified feature-pack", activator = NoStateCommandActivator.class)
 public class UninstallCommand extends ProvisioningCommand {
 
     @Argument(completer = InstalledStreamCompleter.class)

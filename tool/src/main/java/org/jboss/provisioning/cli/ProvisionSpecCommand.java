@@ -24,13 +24,14 @@ import org.aesh.command.option.Argument;
 import org.aesh.io.Resource;
 
 import org.jboss.provisioning.ProvisioningException;
+import org.jboss.provisioning.cli.cmd.state.NoStateCommandActivator;
 
 
 /**
  *
  * @author Alexey Loubyansky
  */
-@CommandDefinition(name="provision", description="(Re)Provisions the installation according to the specification provided in an XML file")
+@CommandDefinition(name = "provision", description = "(Re)Provisions the installation according to the specification provided in an XML file", activator = NoStateCommandActivator.class)
 public class ProvisionSpecCommand extends ProvisioningCommand {
 
     @Argument(description = "File describing the desired provisioned state.", required = true)

@@ -16,18 +16,20 @@
  */
 package org.jboss.provisioning.cli;
 
+import org.jboss.provisioning.cli.cmd.filesystem.PwdCommand;
+import org.jboss.provisioning.cli.cmd.filesystem.CdCommand;
+import org.jboss.provisioning.cli.cmd.filesystem.LsCommand;
+import org.jboss.provisioning.cli.cmd.state.StateCommand;
 import org.jboss.provisioning.cli.cmd.plugin.InstallCommand;
 import java.util.logging.LogManager;
 import org.aesh.command.impl.registry.AeshCommandRegistryBuilder;
 import org.aesh.command.registry.CommandRegistry;
 import org.aesh.command.settings.Settings;
 import org.aesh.command.settings.SettingsBuilder;
-import org.aesh.extensions.exit.Exit;
-import org.aesh.extensions.ls.Ls;
-import org.aesh.extensions.mkdir.Mkdir;
-import org.aesh.extensions.pwd.Pwd;
-import org.aesh.extensions.rm.Rm;
 import org.aesh.readline.ReadlineConsole;
+import org.jboss.provisioning.cli.cmd.filesystem.PmMkdir;
+import org.jboss.provisioning.cli.cmd.filesystem.PmRm;
+import org.jboss.provisioning.cli.cmd.state.feature.FeatureCommand;
 
 /**
  *
@@ -42,31 +44,40 @@ public class CliMain {
         // Create commands that are dynamic (or contain dynamic sub commands).
         // Options are discovered at execution time
         InstallCommand install = new InstallCommand(pmSession);
-        ProvisionedSpecCommand state = new ProvisionedSpecCommand(pmSession);
-
-        CommandRegistry registry = new AeshCommandRegistryBuilder()
+        //ProvisionedSpecCommand state = new ProvisionedSpecCommand(pmSession);
+        FeatureCommand feature = new FeatureCommand(pmSession);
+        StateCommand state = new StateCommand(pmSession);
+        AeshCommandRegistryBuilder builder = new AeshCommandRegistryBuilder()
+                .command(feature)
                 .command(state)
                 .command(install.createCommand())
-                .command(ProvisionSpecCommand.class)
+                //.command(ProvisionSpecCommand.class)
                 .command(ChangesCommand.class)
                 .command(UpgradeCommand.class)
                 .command(UninstallCommand.class)
                 .command(CdCommand.class)
-                .command(Exit.class)
-                .command(Ls.class)
-                .command(Mkdir.class)
-                .command(Rm.class)
-                .command(Pwd.class)
-                .command(UniverseCommand.class)
-                .create();
+                .command(PmExitCommand.class)
+                .command(LsCommand.class)
+                .command(PmMkdir.class)
+                .command(PmRm.class)
+                .command(PwdCommand.class)
+                .command(UniverseCommand.class);
 
+        StateCommand.addActionCommands(builder);
+
+        CommandRegistry registry = builder.create();
         final Settings settings = SettingsBuilder.builder().
                 logging(overrideLogging()).
                 commandRegistry(registry).
+                enableOperatorParser(true).
                 persistHistory(true).
+                commandActivatorProvider(pmSession).
                 historyFile(config.getHistoryFile()).
                 echoCtrl(false).
+                enableExport(false).
+                enableAlias(false).
                 completerInvocationProvider(pmSession).
+                optionActivatorProvider(pmSession).
                 commandInvocationProvider(pmSession).
                 build();
 

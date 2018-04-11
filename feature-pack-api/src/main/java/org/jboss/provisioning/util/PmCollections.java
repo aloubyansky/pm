@@ -132,6 +132,34 @@ public class PmCollections {
         return s;
     }
 
+    public static <T> List<T> add(List<T> s, int index, T t) {
+        if (s.isEmpty()) {
+            return Collections.singletonList(t);
+        }
+        if (s.size() == 1) {
+            final T first = s.get(0);
+            s = new ArrayList<>(2);
+            s.add(first);
+        }
+        if (index >= s.size()) {
+            s.add(t);
+        } else {
+            s.add(index, t);
+        }
+        return s;
+    }
+
+    public static <T> List<T> remove(List<T> s, int index) {
+        if (s.isEmpty() || s.size() == 1) {
+            return Collections.emptyList();
+        }
+        s.remove(index);
+        if (s.size() == 1) {
+            return Collections.singletonList(s.get(0));
+        }
+        return s;
+    }
+
     public static <T> List<T> addAll(List<T> dest, List<T> src) {
         if(dest.isEmpty()) {
             return src;

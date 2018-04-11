@@ -63,8 +63,15 @@ public class ProvisioningConfig extends FeaturePackDepsConfig {
         return new Builder(provisioningConfig);
     }
 
+    private final Builder builder;
+
     private ProvisioningConfig(Builder builder) {
         super(builder);
+        this.builder = builder;
+    }
+
+    public Builder getBuilder() {
+        return builder;
     }
 
     @Override
