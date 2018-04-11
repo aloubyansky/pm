@@ -41,4 +41,8 @@ public class ConfigurationId {
     public ConfigId getId() {
         return new ConfigId(model, name);
     }
+
+    public boolean isModelOnly() {
+        return name == null || name.isEmpty();
+    }
 }
