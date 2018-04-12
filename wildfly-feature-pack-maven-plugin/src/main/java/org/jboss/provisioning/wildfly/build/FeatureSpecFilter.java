@@ -22,11 +22,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.logging.Log;
-import org.jboss.provisioning.spec.CapabilitySpec;
-import org.jboss.provisioning.spec.FeatureAnnotation;
-import org.jboss.provisioning.spec.FeatureDependencySpec;
-import org.jboss.provisioning.spec.FeatureReferenceSpec;
-import org.jboss.provisioning.spec.FeatureSpec;
+import org.jboss.galleon.spec.CapabilitySpec;
+import org.jboss.galleon.spec.FeatureAnnotation;
+import org.jboss.galleon.spec.FeatureDependencySpec;
+import org.jboss.galleon.spec.FeatureReferenceSpec;
+import org.jboss.galleon.spec.FeatureSpec;
 
 /**
  *

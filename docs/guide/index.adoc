@@ -1,4 +1,4 @@
-= PM Provisioning Documentation
+= JBoss PM Documentation
 Alexey Loubyansky
 :revnumber: {version}
 :revdate: {localdate}
@@ -13,15 +13,5 @@ Alexey Loubyansky
 
 (C) 2017 The original authors.
 
-
-include::overview/index.adoc[]
-
-include::feature-packs/index.adoc[]
-
-include::provisioning-content/index.adoc[]
-
-include::provisioned-config/index.adoc[]
-
-include::tool/index.adoc[]
 
 include::wildfly/index.adoc[]

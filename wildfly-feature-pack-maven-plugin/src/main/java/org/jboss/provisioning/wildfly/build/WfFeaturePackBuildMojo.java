@@ -57,29 +57,29 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.jboss.provisioning.ArtifactCoords;
-import org.jboss.provisioning.Constants;
-import org.jboss.provisioning.Errors;
-import org.jboss.provisioning.ProvisioningDescriptionException;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.config.ConfigId;
-import org.jboss.provisioning.config.ConfigModel;
-import org.jboss.provisioning.config.FeaturePackConfig;
-import org.jboss.provisioning.layout.FeaturePackLayout;
-import org.jboss.provisioning.layout.FeaturePackLayoutDescriber;
-import org.jboss.provisioning.plugin.FpMavenErrors;
-import org.jboss.provisioning.plugin.util.MavenPluginUtil;
+import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.layout.FeaturePackLayout;
+import org.jboss.galleon.layout.FeaturePackLayoutDescriber;
+import org.jboss.galleon.maven.plugin.FpMavenErrors;
+import org.jboss.galleon.maven.plugin.util.MavenPluginUtil;
+import org.jboss.galleon.spec.FeaturePackSpec;
+import org.jboss.galleon.spec.PackageSpec;
+import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.PropertyUtils;
+import org.jboss.galleon.util.StringUtils;
+import org.jboss.galleon.xml.FeaturePackXmlWriter;
+import org.jboss.galleon.xml.PackageXmlParser;
+import org.jboss.galleon.xml.PackageXmlWriter;
 import org.jboss.provisioning.plugin.wildfly.WfConstants;
-import org.jboss.provisioning.spec.FeaturePackSpec;
-import org.jboss.provisioning.spec.PackageSpec;
-import org.jboss.provisioning.util.IoUtils;
-import org.jboss.provisioning.util.PmCollections;
-import org.jboss.provisioning.util.PropertyUtils;
-import org.jboss.provisioning.util.StringUtils;
 import org.jboss.provisioning.wildfly.build.ModuleParseResult.ModuleDependency;
-import org.jboss.provisioning.xml.FeaturePackXmlWriter;
-import org.jboss.provisioning.xml.PackageXmlParser;
-import org.jboss.provisioning.xml.PackageXmlWriter;
 
 /**
  * This plug-in builds a WildFly feature-pack arranging the content by packages.
@@ -646,7 +646,7 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
                             for (Map.Entry<String, FeaturePackLayout> depEntry : fpDependencies.entrySet()) {
                                 if (depEntry.getValue().hasPackage(depName)) {
                                     if (depSrc != null) {
-                                        alternativeSrc = PmCollections.add(alternativeSrc, depSrc.getKey());
+                                        alternativeSrc = CollectionUtils.add(alternativeSrc, depSrc.getKey());
                                     }
                                     depSrc = depEntry;
                                 }

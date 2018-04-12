@@ -26,13 +26,13 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
-import org.jboss.provisioning.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.spec.FeatureAnnotation;
+import org.jboss.galleon.spec.FeatureParameterSpec;
+import org.jboss.galleon.spec.FeatureReferenceSpec;
+import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.xml.FeatureSpecXmlWriter;
 import org.jboss.provisioning.plugin.wildfly.WfConstants;
-import org.jboss.provisioning.spec.FeatureAnnotation;
-import org.jboss.provisioning.spec.FeatureParameterSpec;
-import org.jboss.provisioning.spec.FeatureReferenceSpec;
-import org.jboss.provisioning.spec.FeatureSpec;
-import org.jboss.provisioning.xml.FeatureSpecXmlWriter;
 
 /**
  *

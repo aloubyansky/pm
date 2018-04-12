@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ class ModuleArtifactPropertyResolver implements PropertyResolver {
     }
 
     /* (non-Javadoc)
-     * @see org.jboss.provisioning.plugin.wildfly.PropertyResolver#resolveProperty(java.lang.String)
+     * @see org.jboss.galleon.maven.plugin.wildfly.PropertyResolver#resolveProperty(java.lang.String)
      */
     @Override
     public String resolveProperty(String property) {

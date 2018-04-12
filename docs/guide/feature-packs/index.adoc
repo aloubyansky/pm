@@ -1,5 +1,0 @@
-include::feature-packs.adoc[]
-
-include::feature-pack-archive.adoc[]
-
-include::feature-pack-xml.adoc[]

@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.provisioning.config.ConfigModel;
-import org.jboss.provisioning.spec.CapabilitySpec;
-import org.jboss.provisioning.util.PmCollections;
+import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.spec.CapabilitySpec;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  * Representation of the feature pack build config
@@ -45,22 +45,22 @@ public class WildFlyFeaturePackBuild {
         }
 
         public Builder addDefaultPackage(String packageName) {
-            defaultPackages = PmCollections.add(defaultPackages, packageName);
+            defaultPackages = CollectionUtils.add(defaultPackages, packageName);
             return this;
         }
 
         public Builder addDependency(FeaturePackDependencySpec dependency) {
-            dependencies = PmCollections.add(dependencies, dependency);
+            dependencies = CollectionUtils.add(dependencies, dependency);
             return this;
         }
 
         public Builder addSchemaGroup(String groupId) {
-            schemaGroups = PmCollections.add(schemaGroups, groupId);
+            schemaGroups = CollectionUtils.add(schemaGroups, groupId);
             return this;
         }
 
         public Builder addConfig(ConfigModel config) {
-            configs = PmCollections.add(configs, config);
+            configs = CollectionUtils.add(configs, config);
             return this;
         }
 
@@ -83,10 +83,10 @@ public class WildFlyFeaturePackBuild {
     private final List<ConfigModel> configs;
 
     private WildFlyFeaturePackBuild(Builder builder) {
-        this.dependencies = PmCollections.unmodifiable(builder.dependencies);
-        this.schemaGroups = PmCollections.unmodifiable(builder.schemaGroups);
-        this.defaultPackages = PmCollections.unmodifiable(builder.defaultPackages);
-        this.configs = PmCollections.unmodifiable(builder.configs);
+        this.dependencies = CollectionUtils.unmodifiable(builder.dependencies);
+        this.schemaGroups = CollectionUtils.unmodifiable(builder.schemaGroups);
+        this.defaultPackages = CollectionUtils.unmodifiable(builder.defaultPackages);
+        this.configs = CollectionUtils.unmodifiable(builder.configs);
     }
 
     public Collection<String> getDefaultPackages() {

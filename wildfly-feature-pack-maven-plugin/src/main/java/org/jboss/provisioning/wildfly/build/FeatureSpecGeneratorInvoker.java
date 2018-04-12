@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import org.apache.maven.plugin.logging.Log;
-import org.jboss.provisioning.ProvisioningException;
+import org.jboss.galleon.ProvisioningException;
 
 /**
  *

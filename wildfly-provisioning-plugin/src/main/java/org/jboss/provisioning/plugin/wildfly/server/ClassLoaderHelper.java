@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import org.jboss.provisioning.ProvisioningException;
+
+import org.jboss.galleon.ProvisioningException;
 
 /**
  *

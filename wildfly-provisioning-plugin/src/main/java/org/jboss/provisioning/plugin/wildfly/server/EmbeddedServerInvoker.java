@@ -26,8 +26,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningException;
+
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningException;
 
 /**
  *
@@ -114,7 +115,7 @@ public class EmbeddedServerInvoker {
         Properties props = System.getProperties();
         try {
             Thread.currentThread().setContextClassLoader(newCl);
-            final Class<?> cliScriptRunner = newCl.loadClass("org.jboss.provisioning.plugin.wildfly.server.CliScriptRunner");
+            final Class<?> cliScriptRunner = newCl.loadClass("org.jboss.galleon.plugin.wildfly.server.CliScriptRunner");
             final Method execute = cliScriptRunner.getMethod("runCliScript", Path.class, Path.class, MessageWriter.class);
             execute.invoke(null, installationDir, script, messageWriter);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoClassDefFoundError ex) {

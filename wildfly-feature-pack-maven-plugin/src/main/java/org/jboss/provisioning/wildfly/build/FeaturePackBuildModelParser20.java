@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,15 @@
  */
 package org.jboss.provisioning.wildfly.build;
 
-import org.jboss.provisioning.ArtifactCoords;
-import org.jboss.provisioning.ProvisioningDescriptionException;
-import org.jboss.provisioning.config.ConfigModel;
-import org.jboss.provisioning.config.FeaturePackConfig;
-import org.jboss.provisioning.util.ParsingUtils;
-import org.jboss.provisioning.xml.ConfigXml;
-import org.jboss.provisioning.xml.FeaturePackPackagesConfigParser10;
-import org.jboss.provisioning.xml.ProvisioningXmlParser10;
-import org.jboss.provisioning.xml.XmlNameProvider;
+import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.util.ParsingUtils;
+import org.jboss.galleon.xml.ConfigXml;
+import org.jboss.galleon.xml.FeaturePackPackagesConfigParser10;
+import org.jboss.galleon.xml.ProvisioningXmlParser10;
+import org.jboss.galleon.xml.XmlNameProvider;
 import org.jboss.staxmapper.XMLElementReader;
 import org.jboss.staxmapper.XMLExtendedStreamReader;
 
