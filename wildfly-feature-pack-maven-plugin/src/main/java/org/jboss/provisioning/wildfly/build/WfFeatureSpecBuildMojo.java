@@ -134,7 +134,7 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
             clearXMLConfiguration(props);
             IoUtils.recursiveDelete(tmpModules);
 
-            if(specsTotal >= 0) {
+            if(getLog().isDebugEnabled() && specsTotal >= 0) {
                 final long totalTime = System.currentTimeMillis() - startTime;
                 final long secs = totalTime / 1000;
                 debug("Generated " + specsTotal + " feature specs in " + secs + "." + (totalTime - secs * 1000) + " secs");
@@ -279,8 +279,8 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
     }
 
     private void registerArtifact(Map<String, Artifact> artifacts , Artifact artifact) {
-        String key = getArtifactKey(artifact);
-        debug("Registering " + artifact.toString() + " for key " + key);
+        final String key = getArtifactKey(artifact);
+        debug("Registering %s for key %s", artifact.toString(), key);
         artifacts.putIfAbsent(key, artifact);
     }
 
