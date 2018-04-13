@@ -17,7 +17,7 @@
 
 package org.jboss.provisioning.plugin.wildfly.configgen;
 
-import static org.jboss.provisioning.Constants.PM_UNDEFINED;
+import static org.jboss.galleon.Constants.PM_UNDEFINED;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,20 +34,20 @@ import org.jboss.as.cli.parsing.arguments.ArgumentValueCallbackHandler;
 import org.jboss.as.cli.parsing.arguments.ArgumentValueInitialState;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
-import org.jboss.provisioning.ArtifactCoords;
-import org.jboss.provisioning.Constants;
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningDescriptionException;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.plugin.ProvisionedConfigHandler;
+import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Constants;
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningDescriptionException;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.plugin.ProvisionedConfigHandler;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.runtime.ResolvedFeatureSpec;
+import org.jboss.galleon.runtime.ResolvedSpecId;
+import org.jboss.galleon.spec.FeatureAnnotation;
+import org.jboss.galleon.state.ProvisionedConfig;
+import org.jboss.galleon.state.ProvisionedFeature;
+import org.jboss.galleon.util.CollectionUtils;
 import org.jboss.provisioning.plugin.wildfly.WfConstants;
-import org.jboss.provisioning.runtime.ProvisioningRuntime;
-import org.jboss.provisioning.runtime.ResolvedFeatureSpec;
-import org.jboss.provisioning.runtime.ResolvedSpecId;
-import org.jboss.provisioning.spec.FeatureAnnotation;
-import org.jboss.provisioning.state.ProvisionedConfig;
-import org.jboss.provisioning.state.ProvisionedFeature;
-import org.jboss.provisioning.util.PmCollections;
 
 /**
  *
@@ -456,7 +456,7 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
             if(!annotation.getName().equals(WfConstants.JBOSS_OP)) {
                 continue;
             }
-            ops = PmCollections.addAll(ops, nextAnnotation(spec, annotation));
+            ops = CollectionUtils.addAll(ops, nextAnnotation(spec, annotation));
         }
         specOps.put(spec.getId(), ops);
     }

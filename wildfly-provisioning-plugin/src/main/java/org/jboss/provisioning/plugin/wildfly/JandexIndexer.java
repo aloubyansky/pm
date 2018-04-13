@@ -27,10 +27,11 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import org.jboss.galleon.MessageWriter;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexWriter;
 import org.jboss.jandex.Indexer;
-import org.jboss.provisioning.MessageWriter;
 
 /**
  * @author Stuart Douglas

@@ -21,11 +21,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.plugin.UpgradePlugin;
-import org.jboss.provisioning.runtime.ProvisioningRuntime;
-import org.jboss.provisioning.diff.FileSystemMerge;
-import org.jboss.provisioning.diff.Strategy;
+
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.diff.FileSystemMerge;
+import org.jboss.galleon.diff.Strategy;
+import org.jboss.galleon.plugin.UpgradePlugin;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
 import org.jboss.provisioning.plugin.wildfly.server.EmbeddedServerInvoker;
 
 /**

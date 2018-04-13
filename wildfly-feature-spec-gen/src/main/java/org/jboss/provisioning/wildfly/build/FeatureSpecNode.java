@@ -34,16 +34,16 @@ import javax.xml.stream.XMLStreamException;
 
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
-import org.jboss.provisioning.Constants;
-import org.jboss.provisioning.Errors;
-import org.jboss.provisioning.ProvisioningException;
+import org.jboss.galleon.Constants;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.spec.FeatureAnnotation;
+import org.jboss.galleon.spec.FeatureParameterSpec;
+import org.jboss.galleon.spec.FeatureReferenceSpec;
+import org.jboss.galleon.spec.FeatureSpec;
+import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.xml.FeatureSpecXmlWriter;
 import org.jboss.provisioning.plugin.wildfly.WfConstants;
-import org.jboss.provisioning.spec.FeatureAnnotation;
-import org.jboss.provisioning.spec.FeatureParameterSpec;
-import org.jboss.provisioning.spec.FeatureReferenceSpec;
-import org.jboss.provisioning.spec.FeatureSpec;
-import org.jboss.provisioning.util.PmCollections;
-import org.jboss.provisioning.xml.FeatureSpecXmlWriter;
 
 /**
  *
@@ -581,7 +581,7 @@ class FeatureSpecNode {
                 extendedIdParams = Collections.emptySet();
                 for(String candidateParam : this.extendedIdParams) {
                     if(!referencingSpec.extendedIdParams.contains(candidateParam)) {
-                        extendedIdParams = PmCollections.add(extendedIdParams, candidateParam);
+                        extendedIdParams = CollectionUtils.add(extendedIdParams, candidateParam);
                     }
                 }
             } else if(gen.isInherited(referencingSpecName)) {
@@ -806,7 +806,7 @@ class FeatureSpecNode {
 
         if(standaloneName != null && identicalInAllModels(standaloneName)) {
             assertIdenticalSpecs(standaloneName, standaloneDescr, hostName, hostDescr, HOST_PREFIX);
-            extendedIdParams = PmCollections.add(extendedIdParams, "host");
+            extendedIdParams = CollectionUtils.add(extendedIdParams, "host");
             mergeCode |= STANDALONE_MODEL | HOST_MODEL;
             mergedModel = STANDALONE_MODEL;
             generateMerged = generateStandalone;
@@ -875,7 +875,7 @@ class FeatureSpecNode {
         }
         if(childNode == null) {
             childNode = new FeatureSpecNode(gen, type, childName, descr);
-            children = PmCollections.put(children, childName, childNode);
+            children = CollectionUtils.put(children, childName, childNode);
         }
         gen.addSpec(childName, childNode);
         if(descr.hasDefined("refs")) {

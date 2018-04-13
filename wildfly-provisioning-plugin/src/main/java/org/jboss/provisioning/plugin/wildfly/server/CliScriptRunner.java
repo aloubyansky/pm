@@ -25,8 +25,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningException;
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningException;
 import org.wildfly.core.launcher.CliCommandBuilder;
 
 /**

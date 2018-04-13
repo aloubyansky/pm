@@ -63,8 +63,8 @@ import org.codehaus.plexus.archiver.manager.ArchiverManager;
 import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
 import org.codehaus.plexus.components.io.fileselectors.IncludeExcludeFileSelector;
 import org.codehaus.plexus.util.StringUtils;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.util.IoUtils;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.util.IoUtils;
 
 /**
  *

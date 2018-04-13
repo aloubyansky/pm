@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jboss.provisioning.util.PmCollections;
+import org.jboss.galleon.util.CollectionUtils;
 
 /**
  * Represents a set of file permissions that should be applied to the final build.
@@ -61,7 +61,7 @@ public class FilePermission {
         }
 
         public FilePermission build() {
-            return new FilePermission(value, PmCollections.unmodifiable(filters));
+            return new FilePermission(value, CollectionUtils.unmodifiable(filters));
         }
     }
 

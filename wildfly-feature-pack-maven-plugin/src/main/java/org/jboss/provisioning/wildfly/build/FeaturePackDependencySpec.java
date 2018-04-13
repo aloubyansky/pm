@@ -17,7 +17,7 @@
 
 package org.jboss.provisioning.wildfly.build;
 
-import org.jboss.provisioning.config.FeaturePackConfig;
+import org.jboss.galleon.config.FeaturePackConfig;
 
 /**
  * Describes a dependency of one feature-pack on another.

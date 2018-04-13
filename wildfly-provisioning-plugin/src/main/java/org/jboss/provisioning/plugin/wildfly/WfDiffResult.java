@@ -26,17 +26,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.config.FeaturePackConfig;
+import org.jboss.galleon.diff.FileSystemDiffResult;
+import org.jboss.galleon.repomanager.FeaturePackBuilder;
+import org.jboss.galleon.repomanager.PackageBuilder;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+
 import java.util.Set;
 import java.util.StringJoiner;
-import org.jboss.provisioning.ArtifactCoords.Gav;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.config.ConfigId;
-import org.jboss.provisioning.config.ConfigModel;
-import org.jboss.provisioning.config.FeaturePackConfig;
-import org.jboss.provisioning.diff.FileSystemDiffResult;
-import org.jboss.provisioning.repomanager.FeaturePackBuilder;
-import org.jboss.provisioning.repomanager.PackageBuilder;
-import org.jboss.provisioning.runtime.ProvisioningRuntime;
 
 /**
  *

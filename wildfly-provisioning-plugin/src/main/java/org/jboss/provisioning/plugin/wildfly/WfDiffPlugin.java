@@ -36,19 +36,19 @@ import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.provisioning.ArtifactCoords.Gav;
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.config.ConfigId;
-import org.jboss.provisioning.config.ConfigModel;
-import org.jboss.provisioning.diff.FileSystemDiff;
-import org.jboss.provisioning.plugin.DiffPlugin;
-import org.jboss.provisioning.plugin.PluginOption;
-import org.jboss.provisioning.plugin.ProvisioningPluginWithOptions;
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.ArtifactCoords.Gav;
+import org.jboss.galleon.config.ConfigId;
+import org.jboss.galleon.config.ConfigModel;
+import org.jboss.galleon.diff.FileSystemDiff;
+import org.jboss.galleon.plugin.DiffPlugin;
+import org.jboss.galleon.plugin.PluginOption;
+import org.jboss.galleon.plugin.ProvisioningPluginWithOptions;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.util.PathFilter;
+import org.jboss.galleon.xml.ConfigXmlWriter;
 import org.jboss.provisioning.plugin.wildfly.server.ClassLoaderHelper;
-import org.jboss.provisioning.runtime.ProvisioningRuntime;
-import org.jboss.provisioning.util.PathFilter;
-import org.jboss.provisioning.xml.ConfigXmlWriter;
 
 /**
  * WildFly plugin to compute the model difference between an instance and a clean provisioned instance.
@@ -90,7 +90,7 @@ public class WfDiffPlugin extends ProvisioningPluginWithOptions implements DiffP
         Thread.currentThread().setContextClassLoader(newCl);
         Map<Gav, ConfigId> includedConfigs = new HashMap<>();
         try {
-            final Class<?> wfDiffGenerator = newCl.loadClass("org.jboss.provisioning.plugin.wildfly.WfDiffConfigGenerator");
+            final Class<?> wfDiffGenerator = newCl.loadClass("org.jboss.galleon.plugin.wildfly.WfDiffConfigGenerator");
             final Method exportDiff = wfDiffGenerator.getMethod("exportDiff", ProvisioningRuntime.class, Map.class, Path.class, Path.class);
             config = (ConfigModel) exportDiff.invoke(null, runtime, includedConfigs, customizedInstallation, target);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoClassDefFoundError ex) {

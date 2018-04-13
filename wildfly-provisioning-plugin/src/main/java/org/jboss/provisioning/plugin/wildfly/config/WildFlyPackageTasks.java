@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Red Hat, Inc. and/or its affiliates
+ * Copyright 2016-2018 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,9 +25,9 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.jboss.provisioning.Errors;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.util.PmCollections;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.util.CollectionUtils;
 
 
 /**
@@ -50,12 +50,12 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addCopyArtifact(CopyArtifact copy) {
-            copyArtifacts = PmCollections.add(copyArtifacts, copy);
+            copyArtifacts = CollectionUtils.add(copyArtifacts, copy);
             return this;
         }
 
         public Builder addCopyPath(CopyPath copy) {
-            copyPaths = PmCollections.add(copyPaths, copy);
+            copyPaths = CollectionUtils.add(copyPaths, copy);
             return this;
         }
 
@@ -74,7 +74,7 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addDeletePath(DeletePath deletePath) {
-            deletePaths = PmCollections.add(deletePaths, deletePath);
+            deletePaths = CollectionUtils.add(deletePaths, deletePath);
             return this;
         }
 
@@ -86,7 +86,7 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addFilePermissions(FilePermission filePermission) {
-            filePermissions = PmCollections.add(filePermissions, filePermission);
+            filePermissions = CollectionUtils.add(filePermissions, filePermission);
             return this;
         }
 
@@ -98,7 +98,7 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addMkDirs(String mkdirs) {
-            mkDirs = PmCollections.add(mkDirs, mkdirs);
+            mkDirs = CollectionUtils.add(mkDirs, mkdirs);
             return this;
         }
 
@@ -110,7 +110,7 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addWindowsLineEndFilter(FileFilter filter) {
-            windowsLineEndFilters = PmCollections.add(windowsLineEndFilters, filter);
+            windowsLineEndFilters = CollectionUtils.add(windowsLineEndFilters, filter);
             return this;
         }
 
@@ -122,7 +122,7 @@ public class WildFlyPackageTasks {
         }
 
         public Builder addUnixLineEndFilter(FileFilter filter) {
-            unixLineEndFilters = PmCollections.add(unixLineEndFilters, filter);
+            unixLineEndFilters = CollectionUtils.add(unixLineEndFilters, filter);
             return this;
         }
 
@@ -161,13 +161,13 @@ public class WildFlyPackageTasks {
     private final List<FileFilter> unixLineEndFilters;
 
     private WildFlyPackageTasks(Builder builder) {
-        this.copyArtifacts = PmCollections.unmodifiable(builder.copyArtifacts);
-        this.copyPaths = PmCollections.unmodifiable(builder.copyPaths);
-        this.deletePaths = PmCollections.unmodifiable(builder.deletePaths);
-        this.filePermissions = PmCollections.unmodifiable(builder.filePermissions);
-        this.mkDirs = PmCollections.unmodifiable(builder.mkDirs);
-        this.windowsLineEndFilters = PmCollections.unmodifiable(builder.windowsLineEndFilters);
-        this.unixLineEndFilters = PmCollections.unmodifiable(builder.unixLineEndFilters);
+        this.copyArtifacts = CollectionUtils.unmodifiable(builder.copyArtifacts);
+        this.copyPaths = CollectionUtils.unmodifiable(builder.copyPaths);
+        this.deletePaths = CollectionUtils.unmodifiable(builder.deletePaths);
+        this.filePermissions = CollectionUtils.unmodifiable(builder.filePermissions);
+        this.mkDirs = CollectionUtils.unmodifiable(builder.mkDirs);
+        this.windowsLineEndFilters = CollectionUtils.unmodifiable(builder.windowsLineEndFilters);
+        this.unixLineEndFilters = CollectionUtils.unmodifiable(builder.unixLineEndFilters);
     }
 
     public boolean hasCopyArtifacts() {

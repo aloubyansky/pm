@@ -44,8 +44,8 @@
       <artifactId>jandex</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jboss.pm</groupId>
-      <artifactId>feature-pack-api</artifactId>
+      <groupId>org.jboss.galleon</groupId>
+      <artifactId>galleon-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.modules</groupId>
@@ -111,7 +111,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.1.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -131,7 +130,7 @@
                   <exclude>org.jboss.marshalling:jboss-marshalling-river</exclude>
                   <exclude>org.jboss.modules:jboss-modules</exclude>
                   <exclude>org.jboss.msc:jboss-msc</exclude>
-                  <exclude>org.jboss.pm:feature-pack-api</exclude>
+                  <exclude>org.jboss.galleon:galleon-core</exclude>
                   <exclude>org.jboss.remoting:jboss-remoting</exclude>
                   <exclude>org.jboss.remotingjmx:remoting-jmx</exclude>
                   <exclude>org.jboss.stdio:jboss-stdio</exclude>

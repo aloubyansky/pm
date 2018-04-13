@@ -57,26 +57,26 @@ import nu.xom.Elements;
 import nu.xom.ParsingException;
 import nu.xom.Serializer;
 
-import org.jboss.provisioning.ArtifactCoords;
-import org.jboss.provisioning.Errors;
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningException;
-import org.jboss.provisioning.plugin.PluginOption;
-import org.jboss.provisioning.plugin.InstallPlugin;
-import org.jboss.provisioning.plugin.ProvisioningPluginWithOptions;
+import org.jboss.galleon.ArtifactCoords;
+import org.jboss.galleon.Errors;
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningException;
+import org.jboss.galleon.plugin.InstallPlugin;
+import org.jboss.galleon.plugin.PluginOption;
+import org.jboss.galleon.plugin.ProvisioningPluginWithOptions;
+import org.jboss.galleon.runtime.FeaturePackRuntime;
+import org.jboss.galleon.runtime.PackageRuntime;
+import org.jboss.galleon.runtime.ProvisioningRuntime;
+import org.jboss.galleon.util.IoUtils;
+import org.jboss.galleon.util.CollectionUtils;
+import org.jboss.galleon.util.PropertyUtils;
+import org.jboss.galleon.util.ZipUtils;
 import org.jboss.provisioning.plugin.wildfly.config.CopyArtifact;
 import org.jboss.provisioning.plugin.wildfly.config.CopyPath;
 import org.jboss.provisioning.plugin.wildfly.config.DeletePath;
 import org.jboss.provisioning.plugin.wildfly.config.FilePermission;
 import org.jboss.provisioning.plugin.wildfly.config.WildFlyPackageTasks;
 import org.jboss.provisioning.plugin.wildfly.server.CliScriptRunner;
-import org.jboss.provisioning.runtime.FeaturePackRuntime;
-import org.jboss.provisioning.runtime.PackageRuntime;
-import org.jboss.provisioning.runtime.ProvisioningRuntime;
-import org.jboss.provisioning.util.IoUtils;
-import org.jboss.provisioning.util.PmCollections;
-import org.jboss.provisioning.util.PropertyUtils;
-import org.jboss.provisioning.util.ZipUtils;
 
 /**
  *
@@ -107,7 +107,7 @@ public class WfInstallPlugin extends ProvisioningPluginWithOptions implements In
     }
 
     /* (non-Javadoc)
-     * @see org.jboss.provisioning.util.plugin.ProvisioningPlugin#execute()
+     * @see org.jboss.galleon.util.plugin.ProvisioningPlugin#execute()
      */
     @Override
     public void postInstall(ProvisioningRuntime runtime) throws ProvisioningException {
@@ -161,7 +161,7 @@ public class WfInstallPlugin extends ProvisioningPluginWithOptions implements In
                 try(BufferedReader reader = Files.newBufferedReader(schemaGroupsTxt)) {
                     String line = reader.readLine();
                     while(line != null) {
-                        schemaGroups = PmCollections.add(schemaGroups, line);
+                        schemaGroups = CollectionUtils.add(schemaGroups, line);
                         line = reader.readLine();
                     }
                 } catch (IOException e) {

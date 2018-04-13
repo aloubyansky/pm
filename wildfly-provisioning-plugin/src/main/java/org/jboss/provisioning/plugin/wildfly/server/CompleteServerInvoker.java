@@ -22,8 +22,9 @@ import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Properties;
-import org.jboss.provisioning.MessageWriter;
-import org.jboss.provisioning.ProvisioningException;
+
+import org.jboss.galleon.MessageWriter;
+import org.jboss.galleon.ProvisioningException;
 
 /**
  *
@@ -48,7 +49,7 @@ public class CompleteServerInvoker {
         Properties props = System.getProperties();
         try {
             Thread.currentThread().setContextClassLoader(newCl);
-            final Class<?> serverClass = newCl.loadClass("org.jboss.provisioning.plugin.wildfly.server.CompleteServer");
+            final Class<?> serverClass = newCl.loadClass("org.jboss.galleon.plugin.wildfly.server.CompleteServer");
             server = serverClass.getConstructor(Path.class, String.class).newInstance(installationDir, serverConfig);
             final Method startServerMethod = serverClass.getMethod("startServer");
             startServerMethod.invoke(server);
