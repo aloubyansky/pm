@@ -221,6 +221,8 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
         final Path srcModulesDir = targetResources.resolve(WfConstants.MODULES).resolve(WfConstants.SYSTEM).resolve(WfConstants.LAYERS).resolve(WfConstants.BASE);
         if (Files.exists(srcModulesDir)) {
             addModulesAll(srcModulesDir, fpBuilder, targetResources, fpPackagesDir);
+        } else{
+            getLog().warn("No modules found at " + srcModulesDir);
         }
 
         if (!fpDependencies.isEmpty()) {
