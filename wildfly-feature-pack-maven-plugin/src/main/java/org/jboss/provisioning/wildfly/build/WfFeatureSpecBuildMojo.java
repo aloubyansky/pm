@@ -224,6 +224,13 @@ public class WfFeatureSpecBuildMojo extends AbstractMojo {
         }
         lines.add("</extensions>");
         lines.add("<management>");
+        lines.add("<management-interfaces>");
+        lines.add("<http-interface security-realm=\"ManagementRealm\">");
+        lines.add("<http-upgrade enabled=\"true\"/>");
+        lines.add("<socket interface=\"management\" port=\"${jboss.management.http.port:9990}\"/>");
+        lines.add("</http-interface>");
+        lines.add("</management-interfaces>");
+
         lines.add("</management>");
         lines.add("<domain-controller>");
         lines.add("<local />");

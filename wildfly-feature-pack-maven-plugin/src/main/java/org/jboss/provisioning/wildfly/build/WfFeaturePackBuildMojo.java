@@ -317,7 +317,7 @@ public class WfFeaturePackBuildMojo extends AbstractMojo {
     }
 
     private void addModulesAll(final Path srcModulesDir, final FeaturePackLayout.Builder fpBuilder, final Path targetResources, final Path fpPackagesDir) throws MojoExecutionException {
-        getLog().info("WfFeaturePackBuildMojo adding modules.all");
+        getLog().debug("WfFeaturePackBuildMojo adding modules.all");
         final PackageSpec.Builder modulesAll = PackageSpec.builder(WfConstants.MODULES_ALL);
         try {
             final Map<String, Path> moduleXmlByPkgName = findModules(srcModulesDir);
