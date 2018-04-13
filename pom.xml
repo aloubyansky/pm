@@ -463,7 +463,6 @@ limitations under the License.</inlineHeader>
             <yaml>SCRIPT_STYLE</yaml>
             <yml>SCRIPT_STYLE</yml>
           </mapping>
-          <failIfMissing>true</failIfMissing>
         </configuration>
         <dependencies>
           <dependency>
