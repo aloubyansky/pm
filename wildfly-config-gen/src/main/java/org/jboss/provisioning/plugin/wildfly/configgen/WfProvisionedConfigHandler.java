@@ -17,7 +17,7 @@
 
 package org.jboss.provisioning.plugin.wildfly.configgen;
 
-import static org.jboss.galleon.Constants.PM_UNDEFINED;
+import static org.jboss.galleon.Constants.GLN_UNDEFINED;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -35,7 +35,6 @@ import org.jboss.as.cli.parsing.arguments.ArgumentValueInitialState;
 import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.jboss.galleon.ArtifactCoords;
-import org.jboss.galleon.Constants;
 import org.jboss.galleon.MessageWriter;
 import org.jboss.galleon.ProvisioningDescriptionException;
 import org.jboss.galleon.ProvisioningException;
@@ -148,7 +147,7 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
                 if(value == null) {
                     throw new ProvisioningException("Address parameter " + featureParam + " of " + feature.getId() + " is null");
                 }
-                if(PM_UNDEFINED.equals(value)) {
+                if(GLN_UNDEFINED.equals(value)) {
                     i += 2;
                     continue;
                 }
@@ -226,9 +225,9 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
             }
         }
         List<ManagedOp> operations;
-        elemValue = annotation.getElement(WfConstants.OP_PARAMS, Constants.PM_UNDEFINED);
+        elemValue = annotation.getElement(WfConstants.OP_PARAMS, GLN_UNDEFINED);
         final String complexAttr = annotation.getElement("complex-attribute");
-        if (Constants.PM_UNDEFINED.equals(elemValue)) {
+        if (GLN_UNDEFINED.equals(elemValue)) {
             if(!spec.hasParams()) {
                 throw new ProvisioningDescriptionException(WfConstants.OP_PARAMS + " element of "
                         + name + " annotation of " + spec.getId()
@@ -354,8 +353,8 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
             return Collections.emptyList();
         }
 
-        elemValue = annotation.getElement(WfConstants.OP_PARAMS, PM_UNDEFINED);
-        if (PM_UNDEFINED.equals(elemValue)) {
+        elemValue = annotation.getElement(WfConstants.OP_PARAMS, GLN_UNDEFINED);
+        if (GLN_UNDEFINED.equals(elemValue)) {
             if (spec.hasParams()) {
                 final Set<String> allParams = spec.getParamNames();
                 final int opParams = allParams.size() - mop.addrParams.size() / 2;
@@ -385,7 +384,7 @@ public class WfProvisionedConfigHandler implements ProvisionedConfigHandler {
             }
         } else {
             try {
-                mop.opParams = parseList(annotation.getElementAsList(WfConstants.OP_PARAMS, PM_UNDEFINED), annotation.getElementAsList(WfConstants.OP_PARAMS_MAPPING));
+                mop.opParams = parseList(annotation.getElementAsList(WfConstants.OP_PARAMS, GLN_UNDEFINED), annotation.getElementAsList(WfConstants.OP_PARAMS_MAPPING));
             } catch (ProvisioningDescriptionException e) {
                 throw new ProvisioningDescriptionException("Saw empty parameter name in note " + WfConstants.ADDR_PARAMS
                         + "=" + elemValue + " of " + spec.getId());

@@ -97,7 +97,7 @@ public class WfInstallPlugin extends ProvisioningPluginWithOptions implements In
     private boolean thinServer;
     private Set<String> schemaGroups = Collections.emptySet();
 
-    private final PluginOption mavenDistOption = PluginOption.builder("jboss.maven.dist").hasNoValue().build();
+    private final PluginOption mavenDistOption = PluginOption.builder("jboss-maven-dist").hasNoValue().build();
 
     private List<DeletePath> pathsToDelete = Collections.emptyList();
 

@@ -485,7 +485,7 @@ class FeatureSpecNode {
             if(addAsIds) {
                 idParam.get("feature-id").set(true);
             }
-            idParam.get("default").set(Constants.PM_UNDEFINED);
+            idParam.get("default").set(Constants.GLN_UNDEFINED);
             params.add(idParam);
 
             if (addrParams == null) {
@@ -638,7 +638,7 @@ class FeatureSpecNode {
             }
             final ModelNode paramSpec = new ModelNode();
             paramSpec.get("name").set(param);
-            paramSpec.get("default").set("PM_UNDEFINED");
+            paramSpec.get("default").set(Constants.GLN_UNDEFINED);
             params.add(paramSpec);
             gen.debug("WARN: added extra parameter %s to feature spec %s as a consequnce of merging feature spec %s from multiple models", param, specName, referencedSpecName);
             //gen.log.info("WARN: added extra parameter " + param + " to feature spec " + specName + " as a consequnce of merging feature spec " + referencedSpecName + " from multiple models");

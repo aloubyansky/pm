@@ -17,7 +17,7 @@
 
 package org.jboss.provisioning.plugin.wildfly;
 
-import static org.jboss.galleon.Constants.PM_UNDEFINED;
+import static org.jboss.galleon.Constants.GLN_UNDEFINED;
 import static org.jboss.provisioning.plugin.wildfly.WfConstants.ADDR_PARAMS;
 import static org.jboss.provisioning.plugin.wildfly.WfConstants.ADDR_PARAMS_MAPPING;
 import static org.jboss.provisioning.plugin.wildfly.WfConstants.OP_PARAMS;
@@ -164,10 +164,10 @@ public class WfDiffConfigGenerator {
             String value = address.get(addressParams.get(i));
             if (value != null) {
                 if ("undefined".equals(value)) {
-                    value = PM_UNDEFINED;
+                    value = GLN_UNDEFINED;
                 }
             } else {
-                value = PM_UNDEFINED;
+                value = GLN_UNDEFINED;
             }
             featureConfig.putParam(addressParamMappings.get(i), value);
         }

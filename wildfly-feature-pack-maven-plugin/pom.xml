@@ -87,7 +87,7 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.galleon</groupId>
-      <artifactId>galleon-pack-build-maven-plugin</artifactId>
+      <artifactId>galleon-pack-maven-plugins</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.pm</groupId>
