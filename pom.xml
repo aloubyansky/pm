@@ -27,12 +27,12 @@
     <version>24</version>
   </parent>
 
-  <groupId>org.jboss.pm</groupId>
-  <artifactId>pm-parent</artifactId>
-  <version>1.0.0.Alpha-SNAPSHOT</version>
+  <groupId>org.wildfly.galleon-plugins</groupId>
+  <artifactId>wildfly-provisioning-parent</artifactId>
+  <version>1.0.0.Alpha1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>JBoss PM parent</name>
+  <name>WildFly Galleon plugins</name>
   <inceptionYear>2016</inceptionYear>
   <licenses>
     <license>
@@ -43,10 +43,10 @@
   </licenses>
 
   <modules>
-    <module>wildfly-provisioning-plugin</module>
-    <module>wildfly-config-gen</module>
-    <module>wildfly-feature-pack-maven-plugin</module>
-    <module>wildfly-feature-spec-gen</module>
+    <module>galleon-plugins</module>
+    <module>config-gen</module>
+    <module>maven-plugins</module>
+    <module>feature-spec-gen</module>
   </modules>
 
   <properties>
@@ -75,7 +75,7 @@
     <version.org.eclipse.aether>1.1.0</version.org.eclipse.aether>
     <version.org.aesh>1.2-SNAPSHOT</version.org.aesh>
     <version.org.aesh-extensions>1.1</version.org.aesh-extensions>
-    <version.org.jboss.galleon>1.0.0.Alpha2-SNAPSHOT</version.org.jboss.galleon>
+    <version.org.jboss.galleon>1.0.0.Alpha2</version.org.jboss.galleon>
     <version.org.jboss.dmr>1.5.0.Final</version.org.jboss.dmr>
     <version.org.jboss.jandex>2.0.3.Final</version.org.jboss.jandex>
     <version.org.jboss.modules.jboss-modules>1.7.0.Final</version.org.jboss.modules.jboss-modules>
@@ -143,13 +143,13 @@
 
       <dependency>
         <groupId>org.jboss.galleon</groupId>
-        <artifactId>galleon-pack-maven-plugins</artifactId>
+        <artifactId>galleon-maven-plugins</artifactId>
         <version>${version.org.jboss.galleon}</version>
       </dependency>
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-provisioning-plugin</artifactId>
+        <artifactId>wildfly-galleon-plugins</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -161,7 +161,7 @@
 
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wildfly-feature-pack-maven-plugin</artifactId>
+        <artifactId>wildfly-galleon-maven-plugins</artifactId>
         <version>${project.version}</version>
       </dependency>
 
