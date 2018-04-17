@@ -22,15 +22,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.jboss.pm</groupId>
-    <artifactId>pm-parent</artifactId>
-    <version>1.0.0.Alpha-SNAPSHOT</version>
+    <groupId>org.wildfly.galleon-plugins</groupId>
+    <artifactId>wildfly-provisioning-parent</artifactId>
+    <version>1.0.0.Alpha1-SNAPSHOT</version>
   </parent>
 
   <artifactId>docs</artifactId>
   <packaging>pom</packaging>
 
-  <name>JBoss PM Docs</name>
+  <name>WildFly Provisioning Docs</name>
 
   <properties>
     <ec2-pub-ip-dash>1-2-3-4</ec2-pub-ip-dash>
