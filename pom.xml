@@ -62,7 +62,7 @@
     -->
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
 
-    <version.junit>4.12</version.junit>
+    <version.junit>4.13.1</version.junit>
 
     <version.plugin.plugin>3.5</version.plugin.plugin>
     <version.org.apache.maven>3.5.2</version.org.apache.maven>
